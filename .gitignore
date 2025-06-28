@@ -1,0 +1,24 @@
+# === BACKEND (Spring Boot + Maven) ===
+**/target/
+**/.classpath
+**/.project
+**/.settings/
+**/.mvn/
+**/HELP.md
+**/mvnw
+**/mvnw.cmd
+
+# Logs
+*.log
+
+# === FRONTEND (React or other JS frameworks) ===
+frontend/node_modules/
+frontend/.env
+frontend/build/
+
+# === OS / IDE ===
+.DS_Store
+Thumbs.db
+*.iml
+.idea/
+.vscode/
