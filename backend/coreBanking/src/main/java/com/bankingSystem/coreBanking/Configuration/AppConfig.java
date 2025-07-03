@@ -13,13 +13,4 @@ public class AppConfig {
         return new BCryptPasswordEncoder();
     }
 
-    @Bean
-    public WebMvcConfigurer corsConfigurer(){
-        return new WebMvcConfigurer() {
-            public void addCorsMapping(CorsRegistry registry){
-                               // This means all URL paths            To this address   All method like GET, POST and all
-                registry.addMapping("/**").allowedOrigins("http://localhost:5173").allowedMethods("*");
-            }
-        };
-    }
 }

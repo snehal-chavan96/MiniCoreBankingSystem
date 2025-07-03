@@ -4,6 +4,7 @@ import com.bankingSystem.coreBanking.Entity.SignUpUserEntity;
 import com.bankingSystem.coreBanking.Repository.UserSignUpRepo;
 import com.bankingSystem.coreBanking.Service.UserSignUpService;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.ResponseEntity;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.web.bind.annotation.*;
 import java.util.ArrayList;
@@ -18,10 +19,16 @@ public class UserSignUpController {
     private UserSignUpService userSignUpService;
     private BCryptPasswordEncoder encoder = new BCryptPasswordEncoder(12);
     @PostMapping("/signUp")
-    public SignUpUserEntity UserLogin(@RequestBody SignUpUserEntity loginData){
-        loginData.setHashPassword(encoder.encode(loginData.getHashPassword()));
-        return userSignUpService.register(loginData);
+    public ResponseEntity<?> userLogin(@RequestBody SignUpUserEntity signupData) {
+        signupData.setHashPassword(encoder.encode(signupData.getHashPassword()));
+        try {
+            SignUpUserEntity savedUser = userSignUpService.register(signupData);
+            return ResponseEntity.ok(savedUser);
+        } catch (RuntimeException e) {
+            return ResponseEntity.status(409).body(e.getMessage());
+        }
     }
+
 
     // Just to fetch all the users
     @Autowired
@@ -29,5 +36,12 @@ public class UserSignUpController {
     @GetMapping("/getUsers")
     public List<SignUpUserEntity> getUsers(){
         return new ArrayList<>(allUsers.findAll());
+    }
+
+    @Autowired
+    private UserSignUpRepo userByusername;
+    @GetMapping("/user/{username}")
+    public SignUpUserEntity getUserByUsername(@PathVariable String username){
+        return userByusername.findByUsername(username);
     }
 }
