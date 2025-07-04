@@ -53,3 +53,23 @@ public class SignUpUserEntity {
         ACTIVE, BLOCKED
     }
 }
+
+
+
+//{
+// This is JSON to hit the AP request in postman for signup page
+//        "phoneNumber": "9421083455",
+//        "emailId": "harisharmams9890@gmail.com",
+//        "username": "HariSharma@9421",
+//        "hashPassword": "password",
+//        "fullName": "Hari Manojkumar Sharma",
+//        "role": "USER",
+//        "status": "ACTIVE"
+//}
+
+
+// For Login Page
+//{
+//  "username" : "Username",
+//  "password" : "Password"
+// }
