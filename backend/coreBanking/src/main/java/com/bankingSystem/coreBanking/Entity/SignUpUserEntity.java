@@ -16,6 +16,12 @@ public class SignUpUserEntity {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private long userId;
 
+    @Column(nullable = false, unique = true)
+    private String PhoneNumber;
+
+    @Column(nullable = false, unique = true)
+    private String EmailId;
+
     @CreationTimestamp
     private LocalDateTime createdAt;
 
