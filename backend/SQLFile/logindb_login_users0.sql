@@ -1,3 +1,5 @@
+CREATE DATABASE  IF NOT EXISTS `logindb` /*!40100 DEFAULT CHARACTER SET utf8mb4 COLLATE utf8mb4_0900_ai_ci */ /*!80016 DEFAULT ENCRYPTION='N' */;
+USE `logindb`;
 -- MySQL dump 10.13  Distrib 8.0.42, for Win64 (x86_64)
 --
 -- Host: localhost    Database: logindb
@@ -31,9 +33,11 @@ CREATE TABLE `login_users` (
   `status` enum('ACTIVE','BLOCKED') NOT NULL,
   `updated_at` datetime(6) DEFAULT NULL,
   `username` varchar(255) NOT NULL,
+  `email_id` varchar(255) NOT NULL,
+  `phone_number` varchar(255) NOT NULL,
   PRIMARY KEY (`user_id`),
   UNIQUE KEY `UK_niit304xfekfcto33il61l7ok` (`username`)
-) ENGINE=InnoDB AUTO_INCREMENT=12 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+) ENGINE=InnoDB AUTO_INCREMENT=14 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -42,7 +46,7 @@ CREATE TABLE `login_users` (
 
 LOCK TABLES `login_users` WRITE;
 /*!40000 ALTER TABLE `login_users` DISABLE KEYS */;
-INSERT INTO `login_users` VALUES (3,'2025-07-03 01:55:25.128856','Krushna Purushottam Sharma','$2a$12$/X1WyqXZPgvBjk0wendwauuZ2mvOS5r5FQtNG3WVGx5t9WSXrCMq6','USER','ACTIVE','2025-07-03 01:55:25.129862','KrushnaSharma921'),(4,'2025-07-03 11:28:05.364179','Nakshatra Ravindra Patil','$2a$12$xPdkxUOPan7CEAyx/pM/ke4JBb0c23BOBB8ZWHRQI.7Y18xIQq2Dm','USER','ACTIVE','2025-07-03 11:28:05.364179','NakshatraPatil934'),(5,'2025-07-03 12:25:56.949548','Hari Manojkumar Sharma','$2a$12$adzc.Ws/NrpoXQGJj27JWuzpqlpiSNEAImPksnUWdzxRqWGT51sKK','ADMIN','ACTIVE','2025-07-03 12:25:56.949548','HarrySharma9421'),(6,'2025-07-03 18:13:36.342365','Hari Sharma','$2a$12$8wBVrGE6MD7XY/jOKbDtJOPSFhkWkW0DSZX5/rI/3o2jKCyIG3QuG','USER','ACTIVE','2025-07-03 18:13:36.342365','ha'),(7,'2025-07-03 18:15:06.820355','Bhagyalaxmi Manojkumar Sharma','$2a$12$5olJmxc/woSBSXeI5dQEuuDoKoc.F.Yf3sJOTWV7m2rHy6Ia6VpR.','USER','ACTIVE','2025-07-03 18:15:06.820355','bhagyalaxmiSharma9890'),(10,'2025-07-03 19:01:09.660745','Krishna Vasudev Hare','$2a$12$MKxRX.5qURQVihVxEmfINu/doBT.MCmishqUkbCqwcgT8hEGP.5fu','USER','ACTIVE','2025-07-03 19:01:09.660745','NarayanLaxmi@24'),(11,'2025-07-03 22:49:17.202536','Vinay Meet Baviskar','$2a$12$7oZKf1UPDSAmvoW4/uY.puhlenYB8R3Djd50SwNuFdqPzhADRxl2S','USER','BLOCKED','2025-07-03 22:49:17.202536','VinayBaviskar88');
+INSERT INTO `login_users` VALUES (12,'2025-07-04 12:21:26.138457','Hari Manojkumar Sharma','$2a$12$FjYU.x02xKJ7oCjDG8l0BuwwgEJTtpuK/.xm9i3DcapC8wPtdMQZS','USER','ACTIVE','2025-07-04 12:21:26.139455','HariSharma@9421','harisharmams9890@gmail.com','9421083455'),(13,'2025-07-04 18:32:07.653065','Demo User','$2a$12$Odz74mKB8uM/80DqsXSJd.OleailG8TDbeP4E1hJu2yZLsJEBOY.K','USER','ACTIVE','2025-07-04 18:32:07.653065','demo@9421','demo@gmail.com','9421083555');
 /*!40000 ALTER TABLE `login_users` ENABLE KEYS */;
 UNLOCK TABLES;
 /*!40103 SET TIME_ZONE=@OLD_TIME_ZONE */;
@@ -55,4 +59,4 @@ UNLOCK TABLES;
 /*!40101 SET COLLATION_CONNECTION=@OLD_COLLATION_CONNECTION */;
 /*!40111 SET SQL_NOTES=@OLD_SQL_NOTES */;
 
--- Dump completed on 2025-07-03 23:01:22
+-- Dump completed on 2025-07-04 18:57:41

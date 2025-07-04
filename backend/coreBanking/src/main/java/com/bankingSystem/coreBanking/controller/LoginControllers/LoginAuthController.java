@@ -1,6 +1,6 @@
-package com.bankingSystem.coreBanking.controller;
+package com.bankingSystem.coreBanking.controller.LoginControllers;
 import com.bankingSystem.coreBanking.DTO.LoginDTO;
-import com.bankingSystem.coreBanking.Service.UserAuthService;
+import com.bankingSystem.coreBanking.Service.AuthenticationServices.UserAuthService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.PostMapping;

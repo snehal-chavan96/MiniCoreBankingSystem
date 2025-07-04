@@ -1,4 +1,4 @@
-package com.bankingSystem.coreBanking.Repository;
+package com.bankingSystem.coreBanking.Repository.AuthenticationRepos;
 
 import com.bankingSystem.coreBanking.Entity.SignUpUserEntity;
 import org.springframework.data.jpa.repository.JpaRepository;

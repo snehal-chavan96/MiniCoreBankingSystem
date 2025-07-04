@@ -1,4 +1,4 @@
-package com.bankingSystem.coreBanking.controller;
+package com.bankingSystem.coreBanking.controller.HealthCheckController;
 
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
