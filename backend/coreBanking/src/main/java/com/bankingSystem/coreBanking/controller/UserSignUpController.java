@@ -1,8 +1,8 @@
 package com.bankingSystem.coreBanking.controller;
 
-import com.bankingSystem.coreBanking.Entity.SignUpUserEntity;
-import com.bankingSystem.coreBanking.Repository.UserSignUpRepo;
-import com.bankingSystem.coreBanking.Service.UserSignUpService;
+import com.bankingSystem.coreBanking.entity.SignUpUserEntity;
+import com.bankingSystem.coreBanking.repository.UserSignUpRepo;
+import com.bankingSystem.coreBanking.service.UserSignUpService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;

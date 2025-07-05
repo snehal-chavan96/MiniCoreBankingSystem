@@ -1,11 +1,12 @@
-package com.bankingSystem.coreBanking.Entity;
+package com.bankingSystem.coreBanking.entity;
 import jakarta.persistence.*;
+import jakarta.validation.constraints.Email;
+import jakarta.validation.constraints.Pattern;
 import lombok.Getter;
 import lombok.Setter;
 import org.hibernate.annotations.CreationTimestamp;
 import org.hibernate.annotations.UpdateTimestamp;
 import java.time.LocalDateTime;
-
 @Getter
 @Setter
 @Entity
@@ -38,6 +39,15 @@ public class SignUpUserEntity {
     @Enumerated(EnumType.STRING)
     @Column(nullable = false)
     private Status status = Status.ACTIVE;
+
+    @Email
+    @Column(nullable = false, unique = true)
+    private String email;
+
+    @Pattern(regexp = "^\\d{10}$", message = "Invalid phone number")
+    @Column(nullable = false)
+    private String phoneNo;
+
 
     public enum Role {
         ADMIN, USER
