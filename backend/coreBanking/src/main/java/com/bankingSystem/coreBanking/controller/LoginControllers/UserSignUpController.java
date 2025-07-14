@@ -1,8 +1,8 @@
-package com.bankingSystem.coreBanking.controller;
+package com.bankingSystem.coreBanking.controller.LoginControllers;
 
 import com.bankingSystem.coreBanking.Entity.SignUpUserEntity;
-import com.bankingSystem.coreBanking.Repository.UserSignUpRepo;
-import com.bankingSystem.coreBanking.Service.UserSignUpService;
+import com.bankingSystem.coreBanking.Repository.AuthenticationRepos.UserSignUpRepo;
+import com.bankingSystem.coreBanking.Service.AuthenticationServices.UserSignUpService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
@@ -38,6 +38,7 @@ public class UserSignUpController {
         return new ArrayList<>(allUsers.findAll());
     }
 
+    // Fetch User according to username
     @Autowired
     private UserSignUpRepo userByusername;
     @GetMapping("/user/{username}")

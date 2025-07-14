@@ -1,8 +1,8 @@
-package com.bankingSystem.coreBanking.Service;
+package com.bankingSystem.coreBanking.Service.AuthenticationServices;
 
 import com.bankingSystem.coreBanking.Entity.SignUpUserEntity;
-import com.bankingSystem.coreBanking.Repository.UserCredentialsCheckRepo;
-import com.bankingSystem.coreBanking.Repository.UserSignUpRepo;
+import com.bankingSystem.coreBanking.Repository.AuthenticationRepos.UserCredentialsCheckRepo;
+import com.bankingSystem.coreBanking.Repository.AuthenticationRepos.UserSignUpRepo;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
