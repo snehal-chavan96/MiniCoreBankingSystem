@@ -1,27 +1,54 @@
 package com.bankingSystem.coreBanking.controller.LoginControllers;
+
 import com.bankingSystem.coreBanking.DTO.LoginDTO;
-import com.bankingSystem.coreBanking.Service.AuthenticationServices.UserAuthService;
+import com.bankingSystem.coreBanking.Service.UserAuthService.UserAuthService;
+import com.bankingSystem.coreBanking.Util.JwtUtil;
+import jakarta.validation.Valid;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.validation.BindingResult;
+import org.springframework.web.bind.annotation.*;
+
+import java.util.Map;
 
 @RestController
 @RequestMapping("/api")
+@CrossOrigin("http://localhost:5173")
 public class LoginAuthController {
+
     @Autowired
     private UserAuthService userAuthService;
-    @PostMapping("/login")
-    public ResponseEntity<String> login(@RequestBody LoginDTO loginCredentials){
-        boolean authenticated = userAuthService.verifyUsersCredential(loginCredentials.getUsername(), loginCredentials.getPassword());
 
-        if(authenticated){
-            return ResponseEntity.ok("Login Successfull!");
+    @Autowired
+    private JwtUtil jwtUtil;
+
+    @PostMapping("/login")
+    public ResponseEntity<?> login(@Valid @RequestBody LoginDTO loginCredentials, BindingResult bindingResult) {
+
+        if (bindingResult.hasErrors()) {
+            String errorMessage = bindingResult.getFieldError().getDefaultMessage();
+            return ResponseEntity.badRequest().body(Map.of("message", errorMessage)); // 🔒 JSON on bad input
         }
-        else {
-            return ResponseEntity.status(401).body("Invalid Credentials!!");
+
+        boolean authenticated = userAuthService.verifyUsersCredential(
+                loginCredentials.getUsername(),
+                loginCredentials.getPassword()
+        );
+
+        if (authenticated) {
+            String token = jwtUtil.generateToken(loginCredentials.getUsername());
+
+            return ResponseEntity.ok().body(
+                    Map.of(
+                            "message", "Login successful!",
+                            "token", token
+                    )
+            );
+        } else {
+            return ResponseEntity.status(401).body(
+                    Map.of("message", "Invalid Credentials!!")  // ✅ Fix is here
+            );
         }
     }
+
 }

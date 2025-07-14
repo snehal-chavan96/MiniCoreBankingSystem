@@ -1,4 +1,4 @@
-package com.bankingSystem.coreBanking.Entity;
+package com.bankingSystem.coreBanking.Entity.SignUp;
 import jakarta.persistence.*;
 import lombok.Getter;
 import lombok.Setter;
@@ -37,6 +37,13 @@ public class SignUpUserEntity {
     @Column(name = "FullName", nullable = false)
     private String fullName;
 
+    @Column(name = "Answer", nullable = false)
+    private String userAnswer;
+
+    @Enumerated(EnumType.STRING)
+    @Column(name = "SelectedQuestion", nullable = false)
+    private QuestionLists questionLists;
+
     @Enumerated(EnumType.STRING)
     @Column(nullable = false)
     private Role role;
@@ -51,6 +58,21 @@ public class SignUpUserEntity {
 
     public enum Status {
         ACTIVE, BLOCKED
+    }
+    @Getter
+    public enum QuestionLists{
+        MOTHERS_MIDDLE_NAME("What is your mother's middle name?"),
+        FIRST_PET_NAME("What is the name of your first pet?"),
+        FIRST_HIGHSCHOOL_NAME("Where did you attend your first high school?"),
+        CITY_YOU_GREW_UP("Where is the city where you grew up?"),
+        CHILDHOOD_BOOK_NAME("What is your favourite childhood book title?");
+
+        private final String question;
+
+        QuestionLists(String question){
+            this.question = question;
+        }
+
     }
 }
 
