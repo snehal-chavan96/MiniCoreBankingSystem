@@ -8,7 +8,7 @@ public class MiniCoreBankingSystemApplication {
 
 	public static void main(String[] args) {
 		SpringApplication.run(MiniCoreBankingSystemApplication.class, args);
-		System.out.println("Hello World");
+		System.out.println("Server is running successfully on http://localhost:8085");
 	}
 
 }

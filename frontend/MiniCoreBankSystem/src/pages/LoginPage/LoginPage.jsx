@@ -19,6 +19,7 @@ const LoginPage = () => {
     setLoading(true);
 
     try {
+      // Step 1: Login Request
       const res = await fetch("http://localhost:8085/api/login", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
@@ -26,15 +27,37 @@ const LoginPage = () => {
       });
 
       const data = await res.json();
-      const success = res.ok;
 
-      if (success && data.token) {
-        localStorage.setItem("token", data.token);
-        toast.success(data.message || "Login successful!");
-        setTimeout(() => navigate("/api/dashboard"), 1200);
-      } else {
+      if (!res.ok || !data.token) {
         toast.error(data.message || "Invalid credentials.");
+        setLoading(false);
+        return;
       }
+
+      // Step 2: Store token
+      localStorage.setItem("token", data.token);
+
+      // Step 3: Fetch User Details to get Role
+      const userRes = await fetch(`http://localhost:8085/api/user/details/${credentials.username}`);
+      if (!userRes.ok) throw new Error("Failed to get user details");
+
+      const userData = await userRes.json();
+      const { username, role, status } = userData;
+
+      // Step 4: Set session and redirect
+      sessionStorage.setItem("username", username);
+      sessionStorage.setItem("role", role);
+      sessionStorage.setItem("status", status);
+
+      toast.success("Login successful!");
+
+      setTimeout(() => {
+        if (role === "ADMIN") {
+          navigate(`/api/admin/dashboard?user=${username}`);
+        } else {
+          navigate(`/api/user/dashboard?user=${username}`);
+        }
+      }, 1000);
 
     } catch (err) {
       console.error("Login error:", err);

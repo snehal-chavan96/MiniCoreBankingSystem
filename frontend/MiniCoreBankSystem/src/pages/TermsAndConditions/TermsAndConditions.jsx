@@ -52,8 +52,8 @@ const TermsAndConditions = () => {
                   <Scale className="w-6 h-6 text-white" />
                 </div>
                 <div className="ml-3">
-                  <h1 className="text-xl font-bold text-gray-900">SecureBank</h1>
-                  <p className="text-xs text-gray-500">Member FDIC</p>
+                  <h1 className="text-xl font-bold text-gray-900">Bank Pro</h1>
+                  <p className="text-xs text-gray-500">SBC Bank</p>
                 </div>
               </div>
               <nav className="hidden md:flex space-x-6">
