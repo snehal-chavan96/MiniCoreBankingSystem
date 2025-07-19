@@ -31,6 +31,16 @@ const LoginPage = () => {
       if (success && data.token) {
         localStorage.setItem("token", data.token);
         toast.success(data.message || "Login successful!");
+        localStorage.setItem("username", credentials.username);
+
+        // Save userId to local storage
+        if (data.userId) {
+          localStorage.setItem("userId", data.userId);
+          console.log("User ID stored in localStorage:", data.userId);
+        } else {
+          console.warn("userId not received from backend");
+        }
+
         setTimeout(() => navigate("/api/dashboard"), 1200);
       } else {
         toast.error(data.message || "Invalid credentials.");
