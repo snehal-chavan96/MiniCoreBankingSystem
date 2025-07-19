@@ -24,5 +24,6 @@ public class AccountDTO {
     private String status;
     private LocalDate openedAt;
     private LocalDate closedAt;
+    private String pin;
 
 }

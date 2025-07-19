@@ -36,5 +36,6 @@ public class Account {
     private LocalDate openedAt;
     private LocalDate closedAt;
 
+    private String pin;
     // Getters and setters
 }

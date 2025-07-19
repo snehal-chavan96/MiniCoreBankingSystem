@@ -23,7 +23,8 @@ public class AccountMappers {
                 accountDTO.getBalance(),
                 accountDTO.getStatus(),
                 accountDTO.getOpenedAt(),
-                accountDTO.getClosedAt()
+                accountDTO.getClosedAt(),
+                accountDTO.getPin()
         );
     }
 
@@ -40,7 +41,8 @@ public class AccountMappers {
                 account.getBalance(),
                 account.getStatus(),
                 account.getOpenedAt(),
-                account.getClosedAt()
+                account.getClosedAt(),
+                account.getPin()
         );
     }
 
