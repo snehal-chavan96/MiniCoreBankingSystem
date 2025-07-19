@@ -24,7 +24,7 @@ const Dashboard = () => {
     { icon: Receipt, label: "Transactions", href: "/transactions", disabled: !isActive },
     { icon: PiggyBank, label: "Fixed Deposits", href: "/fd", disabled: !isActive },
     { icon: Landmark, label: "Loans", href: "/loans", disabled: !isActive },
-    { icon: CreditCard, label: "Cards", href: "/cards", disabled: !isActive },
+    { icon: CreditCard, label: "Accounts", href: "/api/accounts", disabled: !isActive },
     { icon: BarChart3, label: "Analytics", href: "/analytics", disabled: !isActive },
     { icon: FileText, label: "Statements", href: "/statements", disabled: !isActive },
     { icon: Settings, label: "Settings", href: "/settings" },
