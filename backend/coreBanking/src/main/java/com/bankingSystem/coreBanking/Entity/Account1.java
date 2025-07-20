@@ -21,7 +21,7 @@ public class Account1 {
 
     @ManyToOne
     @JoinColumn(name = "user_id", nullable = false)
-    private SignUpUserEntity user;
+    private com.bankingSystem.coreBanking.Entity.SignUp.SignUpUserEntity user;
 
     @Column(nullable = false, unique = true, length = 20)
     private String accountNumber;
