@@ -27,7 +27,7 @@ public class LoginAuthController {
 
         if (bindingResult.hasErrors()) {
             String errorMessage = bindingResult.getFieldError().getDefaultMessage();
-            return ResponseEntity.badRequest().body(Map.of("message", errorMessage)); // 🔒 JSON on bad input
+            return ResponseEntity.badRequest().body(Map.of("message", errorMessage));
         }
 
         boolean authenticated = userAuthService.verifyUsersCredential(
@@ -46,7 +46,7 @@ public class LoginAuthController {
             );
         } else {
             return ResponseEntity.status(401).body(
-                    Map.of("message", "Invalid Credentials!!")  // ✅ Fix is here
+                    Map.of("message", "Invalid Credentials!!")
             );
         }
     }

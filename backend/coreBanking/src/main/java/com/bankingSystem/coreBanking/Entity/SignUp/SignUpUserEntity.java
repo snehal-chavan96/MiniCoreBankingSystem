@@ -11,7 +11,7 @@ import java.time.LocalDateTime;
 @Getter
 @Setter
 @Entity
-@Table(name = "login_users") // better SQL naming convention
+@Table(name = "login_users")
 public class SignUpUserEntity {
 
     @Id

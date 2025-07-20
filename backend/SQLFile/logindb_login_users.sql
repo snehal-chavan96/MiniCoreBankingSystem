@@ -25,22 +25,15 @@ DROP TABLE IF EXISTS `login_users`;
 CREATE TABLE `login_users` (
   `user_id` bigint NOT NULL AUTO_INCREMENT,
   `created_at` datetime(6) DEFAULT NULL,
-  `email_id` varchar(255) NOT NULL,
   `full_name` varchar(255) NOT NULL,
   `hash_password` varchar(255) NOT NULL,
-  `phone_number` varchar(255) NOT NULL,
-  `selected_question` enum('MOTHERS_MIDDLE_NAME','FIRST_PET_NAME','FIRST_HIGHSCHOOL_NAME','CITY_YOU_GREW_UP','CHILDHOOD_BOOK_NAME') NOT NULL,
   `role` enum('ADMIN','USER') NOT NULL,
-  `status` enum('INACTIVE','ACTIVE','BLOCKED') NOT NULL,
+  `status` enum('ACTIVE','BLOCKED') NOT NULL,
   `updated_at` datetime(6) DEFAULT NULL,
-  `answer` varchar(255) NOT NULL,
   `username` varchar(255) NOT NULL,
-  `question_lists` enum('MOTHERS_MIDDLE_NAME','FIRST_PET_NAME','FIRST_HIGHSCHOOL_NAME','CITY_YOU_GREW_UP','CHILDHOOD_BOOK_NAME') NOT NULL,
   PRIMARY KEY (`user_id`),
-  UNIQUE KEY `UK_7p4no4ol1yg2u71bxqme1fhre` (`email_id`),
-  UNIQUE KEY `UK_5hhw3gx3td4k1gmmqk1emjgy0` (`phone_number`),
   UNIQUE KEY `UK_niit304xfekfcto33il61l7ok` (`username`)
-) ENGINE=InnoDB AUTO_INCREMENT=4 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+) ENGINE=InnoDB AUTO_INCREMENT=12 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -49,7 +42,7 @@ CREATE TABLE `login_users` (
 
 LOCK TABLES `login_users` WRITE;
 /*!40000 ALTER TABLE `login_users` DISABLE KEYS */;
-INSERT INTO `login_users` VALUES (1,'2025-07-19 14:14:53.893654','harisharmams9890@gmail.com','Hari Manojkumar Sharma','$2a$12$ch3lNGr8Vz8kPTYxyIKBIeWyb9x7q1fClRsmFZd828tjj94BLsPNm','9421083455','MOTHERS_MIDDLE_NAME','USER','ACTIVE','2025-07-19 14:15:44.541960','Shalini','HariSharma@9421','MOTHERS_MIDDLE_NAME'),(2,'2025-07-19 14:18:49.330477','demo@demo.com','Demo User','$2a$12$qomszCtUem7hPjWh5uInm.WEMBEqbo4SvIFn3jUgxA.WhFgf/P5ci','8888888888','MOTHERS_MIDDLE_NAME','USER','INACTIVE','2025-07-19 14:18:49.330477','demo pet','demo_123','FIRST_PET_NAME'),(3,'2025-07-19 14:22:44.474517','harrypotter@gmail.com','Harry Potter','$2a$12$nllIknSySPi92fR/wd9cvu919E5l5dwidN7wQaUwvLZFMC9mYB5wS','9954512144','MOTHERS_MIDDLE_NAME','USER','INACTIVE','2025-07-19 14:22:44.474517','Hogwarts','harry_potter45','FIRST_HIGHSCHOOL_NAME');
+INSERT INTO `login_users` VALUES (3,'2025-07-03 01:55:25.128856','Krushna Purushottam Sharma','$2a$12$/X1WyqXZPgvBjk0wendwauuZ2mvOS5r5FQtNG3WVGx5t9WSXrCMq6','USER','ACTIVE','2025-07-03 01:55:25.129862','KrushnaSharma921'),(4,'2025-07-03 11:28:05.364179','Nakshatra Ravindra Patil','$2a$12$xPdkxUOPan7CEAyx/pM/ke4JBb0c23BOBB8ZWHRQI.7Y18xIQq2Dm','USER','ACTIVE','2025-07-03 11:28:05.364179','NakshatraPatil934'),(5,'2025-07-03 12:25:56.949548','Hari Manojkumar Sharma','$2a$12$adzc.Ws/NrpoXQGJj27JWuzpqlpiSNEAImPksnUWdzxRqWGT51sKK','ADMIN','ACTIVE','2025-07-03 12:25:56.949548','HarrySharma9421'),(6,'2025-07-03 18:13:36.342365','Hari Sharma','$2a$12$8wBVrGE6MD7XY/jOKbDtJOPSFhkWkW0DSZX5/rI/3o2jKCyIG3QuG','USER','ACTIVE','2025-07-03 18:13:36.342365','ha'),(7,'2025-07-03 18:15:06.820355','Bhagyalaxmi Manojkumar Sharma','$2a$12$5olJmxc/woSBSXeI5dQEuuDoKoc.F.Yf3sJOTWV7m2rHy6Ia6VpR.','USER','ACTIVE','2025-07-03 18:15:06.820355','bhagyalaxmiSharma9890'),(10,'2025-07-03 19:01:09.660745','Krishna Vasudev Hare','$2a$12$MKxRX.5qURQVihVxEmfINu/doBT.MCmishqUkbCqwcgT8hEGP.5fu','USER','ACTIVE','2025-07-03 19:01:09.660745','NarayanLaxmi@24'),(11,'2025-07-03 22:49:17.202536','Vinay Meet Baviskar','$2a$12$7oZKf1UPDSAmvoW4/uY.puhlenYB8R3Djd50SwNuFdqPzhADRxl2S','USER','BLOCKED','2025-07-03 22:49:17.202536','VinayBaviskar88');
 /*!40000 ALTER TABLE `login_users` ENABLE KEYS */;
 UNLOCK TABLES;
 /*!40103 SET TIME_ZONE=@OLD_TIME_ZONE */;
@@ -62,4 +55,4 @@ UNLOCK TABLES;
 /*!40101 SET COLLATION_CONNECTION=@OLD_COLLATION_CONNECTION */;
 /*!40111 SET SQL_NOTES=@OLD_SQL_NOTES */;
 
--- Dump completed on 2025-07-19 17:52:47
+-- Dump completed on 2025-07-03 23:01:22

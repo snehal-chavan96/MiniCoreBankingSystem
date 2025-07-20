@@ -1,6 +1,5 @@
 package com.bankingSystem.coreBanking.DTO;
 
-import com.bankingSystem.coreBanking.Entity.SignUp.SignUpUserEntity;
 import jakarta.validation.constraints.NotNull;
 import lombok.Getter;
 import lombok.Setter;
