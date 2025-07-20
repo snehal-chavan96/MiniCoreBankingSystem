@@ -1,9 +1,7 @@
 package com.bankingSystem.coreBanking.service;
 
-import at.favre.lib.crypto.bcrypt.BCrypt;
 import com.bankingSystem.coreBanking.entity.SignUpUserEntity;
 import com.bankingSystem.coreBanking.repository.UserSignUpRepo;
-import jakarta.validation.constraints.Null;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;

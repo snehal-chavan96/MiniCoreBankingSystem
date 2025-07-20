@@ -36,8 +36,8 @@ public class Transaction {
     private String remarks;
 
     @Enumerated(EnumType.STRING)
-    @Column(nullable = false)
-    private TxnStatus status;
+    @Column(length = 20, nullable = false)
+    private TxnStatus status = TxnStatus.PENDING;
 
     @Column(nullable = false)
     private LocalDateTime txnTime = LocalDateTime.now();

@@ -1,4 +1,4 @@
-package com.bankingSystem.coreBanking.DTO;
+package com.bankingSystem.coreBanking.dto;
 
 
 import lombok.Getter;

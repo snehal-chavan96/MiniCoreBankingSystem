@@ -1,5 +1,5 @@
 package com.bankingSystem.coreBanking.controller;
-import com.bankingSystem.coreBanking.DTO.LoginDTO;
+import com.bankingSystem.coreBanking.dto.LoginDTO;
 import com.bankingSystem.coreBanking.service.UserAuthService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;

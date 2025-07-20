@@ -1,7 +1,7 @@
 package com.bankingSystem.coreBanking.service;
 
 import org.springframework.stereotype.Service;
-import com.bankingSystem.coreBanking.DTO.FundTransferDTO;
+import com.bankingSystem.coreBanking.dto.FundTransferDTO;
 import com.bankingSystem.coreBanking.entity.Account;
 import com.bankingSystem.coreBanking.entity.Transaction;
 import com.bankingSystem.coreBanking.repository.AccountRepository;
@@ -51,6 +51,8 @@ public class TransactionService {
         txn.setToAccount(to);
         txn.setAmount(amount);
         txn.setTxnType(Transaction.TxnType.valueOf("INTERNAL_TRANSFER"));
+        txn.setRemarks(transferDTO.getRemarks());
+        txn.setStatus(Transaction.TxnStatus.SUCCESS);
         txn.setTxnTime(LocalDateTime.now());
 
         transactionRepo.save(txn);
