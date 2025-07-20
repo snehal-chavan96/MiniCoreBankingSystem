@@ -51,6 +51,8 @@ public class TransactionService {
         txn.setToAccount(to);
         txn.setAmount(amount);
         txn.setTxnType(Transaction.TxnType.valueOf("INTERNAL_TRANSFER"));
+        txn.setRemarks(transferDTO.getRemarks());
+        txn.setStatus(Transaction.TxnStatus.SUCCESS);
         txn.setTxnTime(LocalDateTime.now());
 
         transactionRepo.save(txn);
