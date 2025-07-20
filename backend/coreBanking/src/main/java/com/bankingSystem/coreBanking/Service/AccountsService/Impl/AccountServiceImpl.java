@@ -3,7 +3,7 @@ package com.bankingSystem.coreBanking.Service.AccountsService.Impl;
 import com.bankingSystem.coreBanking.DTO.AccountDTO;
 import com.bankingSystem.coreBanking.Entity.Accounts.Account;
 import com.bankingSystem.coreBanking.Entity.SignUp.SignUpUserEntity;
-import com.bankingSystem.coreBanking.Repository.AccountRepo.AccountRepository;
+import com.bankingSystem.coreBanking.Repository.AccountRepository.AccountRepository;
 import com.bankingSystem.coreBanking.Repository.SignUpRepos.UserSignUpRepo;
 import com.bankingSystem.coreBanking.Service.AccountsService.AccountService;
 import com.bankingSystem.coreBanking.mappers.AccountMappers;

@@ -1,6 +1,6 @@
 package com.bankingSystem.coreBanking.Entity;
 
-import com.bankingSystem.coreBanking.Entity.Account;
+import com.bankingSystem.coreBanking.Entity.Account1;
 import jakarta.persistence.*;
 import lombok.Getter;
 import lombok.Setter;
@@ -20,11 +20,11 @@ public class Transaction {
 
     @ManyToOne
     @JoinColumn(name = "from_account_id")
-    private Account fromAccount;
+    private Account1 fromAccount;
 
     @ManyToOne
     @JoinColumn(name = "to_account_id")
-    private Account toAccount;
+    private Account1 toAccount;
 
     @Enumerated(EnumType.STRING)
     @Column(nullable = false)

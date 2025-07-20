@@ -1,8 +1,8 @@
 package com.bankingSystem.coreBanking.Service;
 
-import com.bankingSystem.coreBanking.Entity.Account;
+import com.bankingSystem.coreBanking.Entity.Account1;
 import com.bankingSystem.coreBanking.Entity.Transaction;
-import com.bankingSystem.coreBanking.Repository.AccountRepository;
+import com.bankingSystem.coreBanking.Repository.AccountRepository1;
 import com.bankingSystem.coreBanking.Repository.TransactionRepository;
 import org.springframework.stereotype.Service;
 import com.bankingSystem.coreBanking.DTO.FundTransferDTO;
@@ -16,17 +16,17 @@ import java.time.LocalDateTime;
 public class TransactionService {
 
     @Autowired
-    private AccountRepository accountRepo;
+    private AccountRepository1 accountRepo;
 
     @Autowired
     private TransactionRepository transactionRepo;
 
     @Transactional
     public void transferFunds(FundTransferDTO transferDTO) {
-        Account from = accountRepo.findById(transferDTO.getFromAccountId())
+        Account1 from = accountRepo.findById(transferDTO.getFromAccountId())
                 .orElseThrow(() -> new RuntimeException("Sender account not found"));
 
-        Account to = accountRepo.findById(transferDTO.getToAccountId())
+        Account1 to = accountRepo.findById(transferDTO.getToAccountId())
                 .orElseThrow(() -> new RuntimeException("Receiver account not found"));
 
         BigDecimal amount = transferDTO.getAmount();

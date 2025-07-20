@@ -1,6 +1,5 @@
-package com.bankingSystem.coreBanking.Repository.AccountRepo;
+package com.bankingSystem.coreBanking.Repository.AccountRepository;
 
-import com.bankingSystem.coreBanking.DTO.AccountDTO;
 import com.bankingSystem.coreBanking.Entity.Accounts.Account;
 import org.springframework.data.jpa.repository.JpaRepository;
 
