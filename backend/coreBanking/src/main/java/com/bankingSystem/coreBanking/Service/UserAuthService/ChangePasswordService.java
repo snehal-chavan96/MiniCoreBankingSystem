@@ -1,4 +1,4 @@
-package com.bankingSystem.coreBanking.Service;
+package com.bankingSystem.coreBanking.Service.UserAuthService;
 import com.bankingSystem.coreBanking.DTO.ForgetPasswordDTO.ChangePasswordDTO;
 import com.bankingSystem.coreBanking.Entity.SignUp.SignUpUserEntity;
 import com.bankingSystem.coreBanking.Repository.SignUpRepos.UserSignUpRepo;

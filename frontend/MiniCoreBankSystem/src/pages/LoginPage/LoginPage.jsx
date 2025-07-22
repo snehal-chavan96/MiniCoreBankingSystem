@@ -51,11 +51,13 @@ const LoginPage = () => {
 
       toast.success("Login successful!");
 
+      console.log("Role for navigation:", role); // Add this line
+
       setTimeout(() => {
         if (role === "ADMIN") {
-          navigate(`/api/admin/dashboard?user=${username}`);
+          navigate(`/api/admin/AdminPage`);
         } else {
-          navigate(`/api/user/dashboard?user=${username}`);
+          navigate(`/api/user/dashboard`);
         }
       }, 1000);
 
@@ -132,7 +134,7 @@ const LoginPage = () => {
               Forgot password?
             </Link>
             <Link to="/api/signup" className="font-medium text-blue-600 hover:text-blue-800 text-sm">
-              Create an account
+              Register User
             </Link>
           </div>
         </form>

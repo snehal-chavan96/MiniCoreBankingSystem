@@ -1,4 +1,4 @@
-package com.bankingSystem.coreBanking.DTO;
+package com.bankingSystem.coreBanking.DTO.AuthDTO;
 
 import jakarta.validation.constraints.NotBlank;
 import lombok.Getter;

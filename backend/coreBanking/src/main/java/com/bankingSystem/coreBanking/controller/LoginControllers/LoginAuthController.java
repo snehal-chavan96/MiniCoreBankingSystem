@@ -1,6 +1,6 @@
 package com.bankingSystem.coreBanking.controller.LoginControllers;
 
-import com.bankingSystem.coreBanking.DTO.LoginDTO;
+import com.bankingSystem.coreBanking.DTO.AuthDTO.LoginDTO;
 import com.bankingSystem.coreBanking.Service.UserAuthService.UserAuthService;
 import com.bankingSystem.coreBanking.Util.JwtUtil;
 import jakarta.validation.Valid;

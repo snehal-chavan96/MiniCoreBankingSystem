@@ -6,7 +6,7 @@ import './index.css';
 // Lazy loaded pages
 const LoginPage = lazy(() => import('./pages/LoginPage/LoginPage'));
 const SignUp = lazy(() => import('./pages/SignUp/SignUp'));
-const Dashboard = lazy(() => import('./pages/Dashboard/Dashboard'));
+const Dashboard = lazy(() => import('./pages/DashboardPage/Dashboard'));
 const Accounts = lazy(() => import('./pages/Accounts/Accounts'));
 const Transactions = lazy(() => import('./pages/Transactions/Transactions'));
 const Profile = lazy(() => import('./pages/Profile/Profile'));
@@ -41,7 +41,7 @@ const App = () => {
             }
           />
           <Route
-            path="api/admin/dashboard"
+            path="/api/admin/AdminPage"
             element={
               <ProtectedRoute allowedRoles={['ADMIN']}>
                 <AdminPage />

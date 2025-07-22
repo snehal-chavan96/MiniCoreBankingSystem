@@ -1,4 +1,4 @@
-package com.bankingSystem.coreBanking.DTO;
+package com.bankingSystem.coreBanking.DTO.AuthDTO;
 
 import com.bankingSystem.coreBanking.Entity.SignUp.SignUpUserEntity;
 import lombok.Getter;

@@ -1,7 +1,7 @@
 package com.bankingSystem.coreBanking.controller.ForgetPasswordControllers;
 
 import com.bankingSystem.coreBanking.DTO.ForgetPasswordDTO.ChangePasswordDTO;
-import com.bankingSystem.coreBanking.Service.ChangePasswordService;
+import com.bankingSystem.coreBanking.Service.UserAuthService.ChangePasswordService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -9,7 +9,7 @@ import org.springframework.web.bind.annotation.*;
 @RestController
 @RequestMapping("/api")
 @CrossOrigin("http://localhost:5173")
-public class changePasswordController {
+public class ChangePasswordController {
     @Autowired
     ChangePasswordService changePasswordService;
 
