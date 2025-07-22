@@ -1,53 +1,53 @@
-package com.bankingSystem.coreBanking.Entity;
+    package com.bankingSystem.coreBanking.Entity;
 
-import com.bankingSystem.coreBanking.Entity.Account1;
-import jakarta.persistence.*;
-import lombok.Getter;
-import lombok.Setter;
+    import com.bankingSystem.coreBanking.Entity.Account1;
+    import jakarta.persistence.*;
+    import lombok.Getter;
+    import lombok.Setter;
 
-import java.math.BigDecimal;
-import java.time.LocalDateTime;
+    import java.math.BigDecimal;
+    import java.time.LocalDateTime;
 
-@Getter
-@Setter
-@Entity
-@Table(name = "transactions")
-public class Transaction {
+    @Getter
+    @Setter
+    @Entity
+    @Table(name = "transactions")
+    public class Transaction {
 
-    @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Long txnId;
+        @Id
+        @GeneratedValue(strategy = GenerationType.IDENTITY)
+        private Long txnId;
 
-    @ManyToOne
-    @JoinColumn(name = "from_account_id")
-    private Account1 fromAccount;
+        @ManyToOne
+        @JoinColumn(name = "from_account_id")
+        private Account1 fromAccount;
 
-    @ManyToOne
-    @JoinColumn(name = "to_account_id")
-    private Account1 toAccount;
+        @ManyToOne
+        @JoinColumn(name = "to_account_id")
+        private Account1 toAccount;
 
-    @Enumerated(EnumType.STRING)
-    @Column(nullable = false)
-    private TxnType txnType;
+        @Enumerated(EnumType.STRING)
+        @Column(nullable = false)
+        private TxnType txnType;
 
-    @Column(nullable = false, precision = 10, scale = 2)
-    private BigDecimal amount;
+        @Column(nullable = false, precision = 10, scale = 2)
+        private BigDecimal amount;
 
-    @Column(columnDefinition = "TEXT")
-    private String remarks;
+        @Column(columnDefinition = "TEXT")
+        private String remarks;
 
-    @Enumerated(EnumType.STRING)
-    @Column(nullable = false)
-    private TxnStatus status;
+        @Enumerated(EnumType.STRING)
+        @Column(nullable = false)
+        private TxnStatus status;
 
-    @Column(nullable = false)
-    private LocalDateTime txnTime = LocalDateTime.now();
+        @Column(nullable = false)
+        private LocalDateTime txnTime = LocalDateTime.now();
 
-    public enum TxnType {
-        DEBIT, CREDIT, INTERNAL_TRANSFER, FD
+        public enum TxnType {
+            DEBIT, CREDIT, INTERNAL_TRANSFER, FD
+        }
+
+        public enum TxnStatus {
+            SUCCESS, FAILED, PENDING
+        }
     }
-
-    public enum TxnStatus {
-        SUCCESS, FAILED, PENDING
-    }
-}
