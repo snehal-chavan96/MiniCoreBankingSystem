@@ -50,21 +50,19 @@ public class AccountServiceImpl implements AccountService {
 
 
     @Override
+
     public BigDecimal getBalance(String accNo, String pin) {
-        Account account = accountRepository.findByAccountNumber(accNo);
+        Account account = accountRepository.findByAccountNumber(accNo)
+                .orElseThrow(() ->
+                        new IllegalArgumentException("Account with account number " + accNo + " not found.")
+                );
 
-        if (account == null) {
-            throw new IllegalArgumentException("Account with account number " + accNo + " not found.");
-            // Or return null or throw custom exception as per your design
+        if (!encoder.matches(pin, account.getPin())) {
+            throw new IllegalArgumentException("Incorrect PIN.");
         }
 
-        if (encoder.matches(pin, account.getPin())) {
-            return account.getBalance();
-        }
-
-        throw new IllegalArgumentException("Incorrect PIN.");
-        // Or return null if you prefer
-
+        return account.getBalance();
     }
+
 
 }

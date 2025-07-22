@@ -1,8 +1,9 @@
 package com.bankingSystem.coreBanking.Service;
 
-import com.bankingSystem.coreBanking.Entity.Account1;
+
+import com.bankingSystem.coreBanking.Entity.Accounts.Account;
 import com.bankingSystem.coreBanking.Entity.Transaction;
-import com.bankingSystem.coreBanking.Repository.AccountRepository1;
+import com.bankingSystem.coreBanking.Repository.AccountRepository.AccountRepository;
 import com.bankingSystem.coreBanking.Repository.TransactionRepository;
 import com.bankingSystem.coreBanking.DTO.FundTransferDTO;
 import jakarta.transaction.Transactional;
@@ -14,10 +15,10 @@ import java.time.LocalDateTime;
 @Service
 public class TransactionService {
 
-    private final AccountRepository1 accountRepo;
+    private final AccountRepository accountRepo;
     private final TransactionRepository transactionRepo;
 
-    public TransactionService(AccountRepository1 accountRepo,
+    public TransactionService(AccountRepository accountRepo,
                               TransactionRepository transactionRepo) {
         this.accountRepo = accountRepo;
         this.transactionRepo = transactionRepo;
@@ -25,10 +26,10 @@ public class TransactionService {
 
     @Transactional
     public BigDecimal transferFunds(FundTransferDTO dto) {
-        Account1 from = accountRepo.findByAccountNumber(dto.getFromAccountNumber())
+        Account from = accountRepo.findByAccountNumber(dto.getFromAccountNumber())
                 .orElseThrow(() -> new RuntimeException("Sender account not found"));
 
-        Account1 to = accountRepo.findByAccountNumber(dto.getToAccountNumber())
+        Account to = accountRepo.findByAccountNumber(dto.getToAccountNumber())
                 .orElseThrow(() -> new RuntimeException("Receiver account not found"));
 
         BigDecimal amount = dto.getAmount();
