@@ -18,7 +18,7 @@ const Accounts = () => {
   const [revealedBalances, setRevealedBalances] = useState({});
 
  
-  const userId = 3;
+  const userId = 2;
 
   useEffect(() => {
     fetchAccounts();

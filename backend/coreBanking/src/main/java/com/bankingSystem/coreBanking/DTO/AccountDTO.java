@@ -25,5 +25,6 @@ public class AccountDTO {
     private LocalDate openedAt;
     private LocalDate closedAt;
     private String pin;
+    private String phoneNo;
 
 }

@@ -46,7 +46,7 @@ public class AccountServiceImpl implements AccountService {
 
         if (account == null) {
             throw new IllegalArgumentException("Account with account number " + accNo + " not found.");
-            // Or return null or throw custom exception as per your design
+
         }
 
         if (encoder.matches(pin, account.getPin())) {
@@ -54,7 +54,6 @@ public class AccountServiceImpl implements AccountService {
         }
 
         throw new IllegalArgumentException("Incorrect PIN.");
-        // Or return null if you prefer
 
     }
 
