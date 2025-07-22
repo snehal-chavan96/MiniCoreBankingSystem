@@ -11,6 +11,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
+import java.math.BigDecimal;
 import java.util.List;
 
 @Service
@@ -33,15 +34,23 @@ public class AccountServiceImpl implements AccountService {
 
     @Override
     public AccountDTO createAccount(AccountDTO accountDTO) {
+        SignUpUserEntity user = userSignUpRepo.findById(accountDTO.getUserId())
+                .orElseThrow(() -> new IllegalArgumentException("User not found"));
 
-        SignUpUserEntity user = userSignUpRepo.findById(accountDTO.getUserId()).orElseThrow();
+        // Check if user already has an account
+        List<Account> existingAccounts = accountRepository.findByUser_UserId(user.getUserId());
+        if (!existingAccounts.isEmpty()) {
+            throw new IllegalStateException("User already has an account.");
+        }
+
         Account account = AccountMappers.mapToAccount(accountDTO, user);
         Account savedAccount = accountRepository.save(account);
         return AccountMappers.mapToAccountDTO(savedAccount);
     }
 
+
     @Override
-    public Double getBalance(String accNo, String pin) {
+    public BigDecimal getBalance(String accNo, String pin) {
         Account account = accountRepository.findByAccountNumber(accNo);
 
         if (account == null) {

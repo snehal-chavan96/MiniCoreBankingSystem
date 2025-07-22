@@ -7,15 +7,15 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 
-import java.time.LocalDate;
+import java.math.BigDecimal;
+import java.time.LocalDateTime;
 
 @Getter
 @Setter
 @AllArgsConstructor
 @NoArgsConstructor
-
-
 @Entity
+@Table(name = "accounts")
 public class Account {
 
     @Id
@@ -23,19 +23,34 @@ public class Account {
     private Long accountId;
 
     @ManyToOne
-    @JoinColumn(name = "user_id", nullable = false)
+    @JoinColumn(name = "user_id", nullable = false,unique = true)
     private SignUpUserEntity user;
 
-    @Column(unique = true)
+    @Column(nullable = false, unique = true, length = 20)
     private String accountNumber;
 
-    private String type;
-    private Double balance;
-    private String status;
+    @Enumerated(EnumType.STRING)
+    @Column(nullable = false)
+    private AccountType type; // SAVINGS, CURRENT, JOINT
 
-    private LocalDate openedAt;
-    private LocalDate closedAt;
+    @Column(nullable = false, precision = 12, scale = 2)
+    private BigDecimal balance = BigDecimal.ZERO;
 
-    private String pin;
-    // Getters and setters
+    @Enumerated(EnumType.STRING)
+    @Column(nullable = false)
+    private AccountStatus status; // ACTIVE, CLOSED, FROZEN
+
+    private LocalDateTime openedAt;
+    private LocalDateTime closedAt;
+
+    @Column(nullable = false)
+    private String pin; // 4 or 6 digit PIN for transactions
+
+    public enum AccountType {
+        SAVINGS, CURRENT, JOINT
+    }
+
+    public enum AccountStatus {
+        ACTIVE, CLOSED, FROZEN
+    }
 }

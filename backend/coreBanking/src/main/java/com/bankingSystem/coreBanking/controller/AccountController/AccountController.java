@@ -4,13 +4,17 @@ package com.bankingSystem.coreBanking.controller.AccountController;
 import com.bankingSystem.coreBanking.DTO.AccountDTO;
 import com.bankingSystem.coreBanking.DTO.BalanceRequestDTO;
 import com.bankingSystem.coreBanking.Entity.Accounts.Account;
+import com.bankingSystem.coreBanking.Repository.AccountRepository.AccountRepository;
 import com.bankingSystem.coreBanking.Service.AccountsService.AccountService;
+import com.bankingSystem.coreBanking.Util.AccountNumberGenerator;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.web.bind.annotation.*;
 
+import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.util.List;
 import java.util.logging.Logger;
@@ -20,6 +24,8 @@ import java.util.logging.Logger;
 @RequestMapping("/api/accounts")
 public class AccountController {
 
+    @Autowired
+    private AccountRepository accountRepository;
 
     @Autowired
     private AccountService accountService;
@@ -27,24 +33,27 @@ public class AccountController {
     private PasswordEncoder encoder;
 
     @PostMapping("/create")
-    public ResponseEntity<AccountDTO> createAccount(@RequestBody AccountDTO accountDTO)
-    {
+    public ResponseEntity<?> createAccount(@RequestBody AccountDTO accountDTO) {
         log.info("Creating an account!!");
-        AccountDTO accountDTO1 = new AccountDTO();
         try {
             accountDTO.setOpenedAt(LocalDate.now());
             accountDTO.setClosedAt(LocalDate.now().plusYears(10));
-            accountDTO.setAccountNumber("FCX"+System.currentTimeMillis());
+            accountDTO.setAccountNumber(
+                    AccountNumberGenerator.generate(Account.AccountType.valueOf(accountDTO.getType()))
+            );
             accountDTO.setPin(encoder.encode(accountDTO.getPin()));
-            accountDTO1 = accountService.createAccount(accountDTO);
+            AccountDTO createdAccount = accountService.createAccount(accountDTO);
             log.info("Account Created!!");
+            return ResponseEntity.ok(createdAccount);
+        } catch (IllegalStateException e) {
+            log.error("Account creation failed: {}", e.getMessage());
+            return ResponseEntity.status(HttpStatus.CONFLICT).body(e.getMessage());
         } catch (Exception e) {
-            System.out.println(e);
-            log.info("Failed to create an account!!");
+            log.error("Error creating account", e);
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("Error creating account");
         }
-
-        return ResponseEntity.ok(accountDTO1);
     }
+
 
     @GetMapping("/user/{id}")
     public ResponseEntity<List<Account>> getAccounts(@PathVariable Long id)
@@ -54,10 +63,18 @@ public class AccountController {
     }
 
     @PostMapping("/viewbalance")
-    public ResponseEntity<Double> viewBalance(@RequestBody BalanceRequestDTO balanceRequestDTO)
+    public ResponseEntity<BigDecimal> viewBalance(@RequestBody BalanceRequestDTO balanceRequestDTO)
     {
-        Double amount = accountService.getBalance(balanceRequestDTO.getAccountNumber(), balanceRequestDTO.getPin());
+        BigDecimal amount = accountService.getBalance(balanceRequestDTO.getAccountNumber(), balanceRequestDTO.getPin());
         return ResponseEntity.ok(amount);
     }
+
+    @GetMapping("/{id}/balance")
+    public ResponseEntity<BigDecimal> getBalanceById(@PathVariable Long id) {
+        return accountRepository.findById(id)
+                .map(acc -> ResponseEntity.ok(acc.getBalance()))
+                .orElse(ResponseEntity.status(HttpStatus.NOT_FOUND).build());
+    }
+
 
 }

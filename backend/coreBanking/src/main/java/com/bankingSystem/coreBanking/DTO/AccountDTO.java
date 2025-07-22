@@ -5,6 +5,7 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 
+import java.math.BigDecimal;
 import java.time.LocalDate;
 
 @Getter
@@ -20,7 +21,7 @@ public class AccountDTO {
 
     private String accountNumber;
     private String type;
-    private Double balance;
+    private BigDecimal balance;
     private String status;
     private LocalDate openedAt;
     private LocalDate closedAt;
