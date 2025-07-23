@@ -34,24 +34,20 @@ const LoginPage = () => {
         return;
       }
 
-      // Step 2: Store token
       localStorage.setItem("token", data.token);
-
-      // Step 3: Fetch User Details to get Role
-      const userRes = await fetch(`http://localhost:8085/api/user/details/${credentials.username}`);
+      const userRes = await fetch(`http://localhost:8085/api/user/${credentials.username}`);
       if (!userRes.ok) throw new Error("Failed to get user details");
 
       const userData = await userRes.json();
       const { username, role, status } = userData;
 
-      // Step 4: Set session and redirect
       sessionStorage.setItem("username", username);
       sessionStorage.setItem("role", role);
       sessionStorage.setItem("status", status);
 
       toast.success("Login successful!");
 
-      console.log("Role for navigation:", role); // Add this line
+      console.log("Role for navigation:", role); 
 
       setTimeout(() => {
         if (role === "ADMIN") {

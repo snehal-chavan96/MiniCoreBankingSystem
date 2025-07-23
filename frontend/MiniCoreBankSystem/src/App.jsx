@@ -7,7 +7,6 @@ import './index.css';
 const LoginPage = lazy(() => import('./pages/LoginPage/LoginPage'));
 const SignUp = lazy(() => import('./pages/SignUp/SignUp'));
 const Dashboard = lazy(() => import('./pages/DashboardPage/Dashboard'));
-const Accounts = lazy(() => import('./pages/Accounts/Accounts'));
 const Transactions = lazy(() => import('./pages/Transactions/Transactions'));
 const Profile = lazy(() => import('./pages/Profile/Profile'));
 const TermsAndConditions = lazy(() => import('./pages/TermsAndConditions/TermsAndConditions'));
@@ -17,6 +16,9 @@ const LandingPage = lazy(() => import('./pages/LandingPage/LandingPage'));
 const AdminPage = lazy(() => import('./pages/AdminPage/AdminPage'));
 const ShowUsersData = lazy(()=> import('./pages/ShowUsersData/ShowUsersData'));
 const KYCFormPage = lazy(()=>import('./pages/KYCFormPage/KYCFormPage'));
+const AccountCreationPage = lazy(()=>import('./pages/CreateAccount/AccountCreationPage'));
+const GetAllTransactionsPage = lazy(()=>import('./pages/GetAllTransaction/GetAllTransactionPage'));
+const FetchUsersAmmount = lazy(()=>import('./pages/FetchUsersAmmount/FetchUserAmmount'));
 const App = () => {
   return (
     <Router>
@@ -49,14 +51,6 @@ const App = () => {
             }
           />
           <Route
-            path="/api/accounts"
-            element={
-              <ProtectedRoute allowedRoles={['USER', 'ADMIN']}>
-                <Accounts />
-              </ProtectedRoute>
-            }
-          />
-          <Route
             path="/api/transactions"
             element={
               <ProtectedRoute allowedRoles={['USER', 'ADMIN']}>
@@ -71,6 +65,33 @@ const App = () => {
                 <Profile />
               </ProtectedRoute>
             }
+          />
+
+          <Route
+          path="/api/users/getAmmount"
+          element={
+            <ProtectedRoute allowedRoles={['USER']}>
+              <FetchUsersAmmount/>
+            </ProtectedRoute>
+          }
+          />
+
+          <Route
+          path="/api/all-transactions"
+          element={
+            <ProtectedRoute allowedRoles={['ADMIN']}>
+              <GetAllTransactionsPage/>
+            </ProtectedRoute>
+          }
+          />
+
+          <Route
+          path="/api/create-account"
+          element={
+            <ProtectedRoute allowedRoles={['ADMIN']}>
+              <AccountCreationPage/>
+            </ProtectedRoute>
+          }
           />
 
           {/* Redirect all unknown paths to login */}

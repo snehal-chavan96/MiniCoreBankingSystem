@@ -18,7 +18,7 @@ import java.time.LocalDate;
 import java.util.List;
 
 @Slf4j
-@CrossOrigin(origins = "*")
+@CrossOrigin("http://localhost:5173")
 @RestController
 @RequestMapping("/api/accounts")
 public class AccountController {
