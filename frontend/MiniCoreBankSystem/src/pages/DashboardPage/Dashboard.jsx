@@ -13,6 +13,9 @@ import 'react-toastify/dist/ReactToastify.css';
 import UserTransactionHistory from "../UsersTransactionHistoryPage/UsersTransactionHistoryPage";
 import TransferMoney from "../TransferMoneyPage/TransferMoneyPage";
 import FetchUserAmount from "../FetchUsersAmmount/FetchUserAmmount";
+import SearchFDStatement from '../SearchFDStatement/SearchFDStatement.jsx';
+import CreateFD from "../CreateFDPage/CreateFDPage.jsx"; 
+
 
 const Dashboard = () => {
   const [state, setState] = useState({
@@ -44,7 +47,7 @@ const Dashboard = () => {
     }
   }, [navigate]);
 
-  const handleChange = (key, value) => setState(prev => ({...prev, [key]: value}));
+  const handleChange = (key, value) => setState(prev => ({ ...prev, [key]: value }));
 
   const handleInterestCalculate = (e) => {
     e.preventDefault();
@@ -83,6 +86,8 @@ const Dashboard = () => {
       { icon: BarChart3, label: "Interest Calculator", view: 'interestCalculator' },
       { icon: Settings, label: "Settings", view: 'settings' },
       { icon: HelpCircle, label: "Support", view: 'support' },
+      { icon: FileText, label: "Check FD Statement", view: 'searchFDStatement' },
+      { icon: PiggyBank, label: "Create FD", view: 'createFD' }  
     ],
     quickActions: [
       { icon: Send, label: "Send", color: "from-blue-500 to-blue-600", disabled: !isActive, action: () => handleChange('currentView', 'transfer') }
@@ -99,7 +104,7 @@ const Dashboard = () => {
       ),
       transfer: (
         <div className="PerformTransaction">
-          <TransferMoney/>
+          <TransferMoney />
         </div>
       ),
       support: (
@@ -229,6 +234,18 @@ const Dashboard = () => {
           )}
         </div>
       ),
+      searchFDStatement: (
+        <div className="bg-white rounded-2xl shadow-lg p-6 max-w-5xl mx-auto">
+          <h2 className="text-2xl font-bold text-gray-800 mb-6">Check FD Statement</h2>
+          <SearchFDStatement />
+        </div>
+      ),
+      createFD: (    // <-- Added new view here
+        <div className="bg-white rounded-2xl shadow-lg p-6 max-w-5xl mx-auto">
+          <h2 className="text-2xl font-bold text-gray-800 mb-6">Create Fixed Deposit</h2>
+          <CreateFD />
+        </div>
+      ),
       dashboard: (
         <div className="space-y-6">
           <div className="grid grid-cols-4 gap-3">
@@ -244,7 +261,7 @@ const Dashboard = () => {
           </div>
 
           <div className="Transactions">
-            <UserTransactionHistory/>
+            <UserTransactionHistory />
           </div>
         </div>
       )
@@ -276,7 +293,7 @@ const Dashboard = () => {
         
         <div className="p-4 mt-2">
           <div className="px-3 py-2 mb-2 text-xs font-semibold text-white/50 uppercase">Menu</div>
-          <nav className="space-y-1">
+          <nav className="space-y-1 overflow-y-auto max-h-[calc(100vh-180px)]">
             {data.sidebarItems.map((item, i) => (
               <button 
                 key={i} 

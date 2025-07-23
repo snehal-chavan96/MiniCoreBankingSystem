@@ -7,7 +7,6 @@ import './index.css';
 const LoginPage = lazy(() => import('./pages/LoginPage/LoginPage'));
 const SignUp = lazy(() => import('./pages/SignUp/SignUp'));
 const Dashboard = lazy(() => import('./pages/DashboardPage/Dashboard'));
-const Transactions = lazy(() => import('./pages/Transactions/Transactions'));
 const Profile = lazy(() => import('./pages/Profile/Profile'));
 const TermsAndConditions = lazy(() => import('./pages/TermsAndConditions/TermsAndConditions'));
 const ChangePassword = lazy(() => import('./pages/ForgetPasswordModule/ChangePassword'));
@@ -19,6 +18,9 @@ const KYCFormPage = lazy(()=>import('./pages/KYCFormPage/KYCFormPage'));
 const AccountCreationPage = lazy(()=>import('./pages/CreateAccount/AccountCreationPage'));
 const GetAllTransactionsPage = lazy(()=>import('./pages/GetAllTransaction/GetAllTransactionPage'));
 const FetchUsersAmmount = lazy(()=>import('./pages/FetchUsersAmmount/FetchUserAmmount'));
+const GetFDDataById = lazy(()=>import('./pages/GetFDByIdPage/GetFDDetailsById'));
+const SearchFDStatement = lazy(()=>import('./pages/SearchFDStatement/SearchFDStatement'));
+const CreateFDPage = lazy(()=>import('./pages/CreateFDPage/CreateFDPage'));
 const App = () => {
   return (
     <Router>
@@ -51,12 +53,12 @@ const App = () => {
             }
           />
           <Route
-            path="/api/transactions"
-            element={
-              <ProtectedRoute allowedRoles={['USER', 'ADMIN']}>
-                <Transactions />
-              </ProtectedRoute>
-            }
+          path="/api/admin/getUsersFDData"
+          element={
+            <ProtectedRoute allowedRoles={['ADMIN']}>
+              <GetFDDataById/>
+            </ProtectedRoute>
+          }
           />
           <Route
             path="/api/profile"
@@ -65,6 +67,24 @@ const App = () => {
                 <Profile />
               </ProtectedRoute>
             }
+          />
+
+          <Route
+          path="/api/fdstatement"
+          element={
+            <ProtectedRoute allowedRoles={['USER', 'ADMIN']}>
+              <SearchFDStatement/>
+            </ProtectedRoute>
+          }
+          />
+
+          <Route
+          path="/api/createFD"
+          element={
+            <ProtectedRoute allowedRoles={['USER']}>
+              <CreateFDPage/>
+            </ProtectedRoute>
+          }
           />
 
           <Route

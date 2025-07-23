@@ -17,6 +17,7 @@ export default function GetAllTransaction() {
       const res = await axios.get('http://localhost:8085/api/transactions/all');
       setTransactions(res.data || []);
     } catch (err) {
+      alert(err);
       setTransactions([]);
     } finally {
       setLoading(false);
@@ -52,6 +53,7 @@ export default function GetAllTransaction() {
             tr:nth-child(even) { background: #f9fafb; }
             .font-semibold { font-weight: 600; }
             .text-green-600 { color: #22c55e; }
+            .text-yellow-600 { color: #eab308; }
             .text-gray-500 { color: #6b7280; }
             .text-gray-800 { color: #27272a; }
             .text-xs { font-size: 0.75rem; }
@@ -99,6 +101,19 @@ export default function GetAllTransaction() {
     );
   };
 
+  // Helper for status color
+  const getStatusBadge = (status) => {
+    if (status === "PENDING") {
+      return <span className="px-3 py-1 rounded-full bg-yellow-50 text-yellow-600 font-semibold text-xs">Pending</span>;
+    } else if (status === "SUCCESS") {
+      return <span className="px-3 py-1 rounded-full bg-green-50 text-green-600 font-semibold text-xs">Success</span>;
+    } else if (status === "FAILED") {
+      return <span className="px-3 py-1 rounded-full bg-red-50 text-red-600 font-semibold text-xs">Failed</span>;
+    } else {
+      return <span className="px-3 py-1 rounded-full bg-gray-100 text-gray-500 font-semibold text-xs">{status || "N/A"}</span>;
+    }
+  };
+
   return (
     <div className="max-w-full mx-auto bg-white rounded-xl shadow-sm p-6">
       <div className="flex justify-between items-center mb-6">
@@ -133,6 +148,7 @@ export default function GetAllTransaction() {
               <th className="px-6 py-3 text-right text-sm font-semibold text-gray-700">Amount</th>
               <th className="px-6 py-3 text-left text-sm font-semibold text-gray-700">Date</th>
               <th className="px-6 py-3 text-left text-sm font-semibold text-gray-700">Remarks</th>
+              <th className="px-6 py-3 text-center text-sm font-semibold text-gray-700">Status</th>
             </tr>
           </thead>
           <tbody className="divide-y divide-gray-100 text-sm text-gray-700">
@@ -142,9 +158,10 @@ export default function GetAllTransaction() {
                 const toUser = txn?.toAccount?.user || {};
                 const txnId = txn?.txnId ?? 'N/A';
                 const amount = txn?.amount ?? 0;
-                // Date displayed exactly as in DB (string)
                 const dateDisplay = txn?.txnTime ?? 'N/A';
                 const remark = txn?.remarks ?? '—';
+                const status = txn?.status ?? 'N/A'; // <-- Make sure this matches your API
+
                 return (
                   <tr key={txnId} className="hover:bg-gray-50 transition duration-200">
                     <td className="px-6 py-4 font-medium text-gray-800 whitespace-nowrap">{txnId}</td>
@@ -159,13 +176,14 @@ export default function GetAllTransaction() {
                     <td className="px-6 py-4 text-right font-semibold text-green-600 whitespace-nowrap">₹{amount}</td>
                     <td className="px-6 py-4 whitespace-nowrap">{dateDisplay}</td>
                     <td className="px-6 py-4 max-w-sm truncate">{remark}</td>
+                    <td className="px-6 py-4 text-center">{getStatusBadge(status)}</td>
                   </tr>
                 );
               })
             ) : (
               !loading && (
                 <tr>
-                  <td colSpan="6" className="text-center py-8 text-gray-500 font-semibold">
+                  <td colSpan="7" className="text-center py-8 text-gray-500 font-semibold">
                     No transactions found.
                   </td>
                 </tr>
@@ -173,7 +191,7 @@ export default function GetAllTransaction() {
             )}
             {loading && (
               <tr>
-                <td colSpan="6" className="text-center py-8 text-gray-400 font-semibold">
+                <td colSpan="7" className="text-center py-8 text-gray-400 font-semibold">
                   Loading transactions...
                 </td>
               </tr>

@@ -14,7 +14,6 @@ export default function GetAllTransaction() {
 
   const token = localStorage.getItem("token") || sessionStorage.getItem("token");
 
-  // Fetch transactions for accountNumber
   const fetchTransactions = async () => {
     setTransactions([]);
     setError('');
