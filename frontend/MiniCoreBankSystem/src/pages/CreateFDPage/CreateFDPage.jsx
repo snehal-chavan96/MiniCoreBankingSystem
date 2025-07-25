@@ -50,7 +50,7 @@ export default function CreateFD() {
 
         <form onSubmit={handleSubmit} className="space-y-4">
           <InputField
-            label="Account ID"
+            label="Account Id (eg. 1)"
             name="accountId"
             value={formData.accountId}
             onChange={handleChange}

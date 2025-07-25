@@ -17,5 +17,4 @@ public class AccountNumberGenerator
         String prefix = "FCX";
         return prefix + counter.incrementAndGet();
     }
-
 }

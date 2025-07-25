@@ -1,4 +1,4 @@
-import React, { useState, useRef } from 'react';
+import React, { useState, useRef, useEffect } from 'react';
 import axios from 'axios';
 import { ArrowDownTrayIcon, ArrowPathIcon } from '@heroicons/react/24/outline';
 import { jsPDF } from 'jspdf';
@@ -10,51 +10,114 @@ export default function GetAllTransaction() {
   const [loading, setLoading] = useState(false);
   const [pdfLoading, setPdfLoading] = useState(false);
   const [error, setError] = useState('');
+  const [inputDisabled, setInputDisabled] = useState(false);
   const tableRef = useRef();
 
+  // Get token and userId
   const token = localStorage.getItem("token") || sessionStorage.getItem("token");
+  const userId = sessionStorage.getItem("userId");
 
-  const fetchTransactions = async () => {
-    setTransactions([]);
-    setError('');
-    if (!accountNumber) {
-      setError('Please enter an account number.');
+  // Fetch account number once on mount
+  useEffect(() => {
+    if (!userId) {
+      setError("User not authenticated (no user ID found).");
+      setInputDisabled(true);
       return;
     }
+    const fetchAccountNumber = async () => {
+      setError('');
+      setLoading(true);
+      try {
+        const res = await axios.get(
+          `http://localhost:8085/api/accounts/user/${userId}`,
+          { headers: { Authorization: `Bearer ${token}` } }
+        );
+        
+        // The API returns an array of accounts, we'll take the first one
+        if (Array.isArray(res.data) && res.data.length > 0) {
+          const firstAccount = res.data[0];
+          if (firstAccount.accountNumber) {
+            setAccountNumber(firstAccount.accountNumber);
+            // Auto-fetch transactions for this account
+            fetchTransactions(firstAccount.accountNumber);
+          } else {
+            setError("Account number not found in the account data.");
+          }
+        } else {
+          setError("No accounts found for this user.");
+        }
+      } catch (err) {
+        console.error("Account fetch error:", err);
+        const errorMessage = err.response?.data?.message || "Failed to load account information.";
+        setError(errorMessage);
+      } finally {
+        setLoading(false);
+      }
+    };
+    
+    fetchAccountNumber();
+  }, [userId, token]);
+
+  // Fetch transactions for the specified account
+  const fetchTransactions = async (accountNum = accountNumber) => {
+    setTransactions([]);
+    setError('');
+    const targetAccount = accountNum || accountNumber;
+    
+    if (!targetAccount) {
+      setError('Account number is required to fetch transactions.');
+      return;
+    }
+    
     setLoading(true);
     try {
       const res = await axios.get(
-        `http://localhost:8085/api/transactions/account/${accountNumber}`,
-        { headers: { Authorization: `Bearer ${token}` } }
+        `http://localhost:8085/api/transactions/account/${targetAccount}`,
+        { 
+          headers: { 
+            Authorization: `Bearer ${token}`,
+            'Content-Type': 'application/json'
+          } 
+        }
       );
-      setTransactions(res.data);
-      if (res.data.length === 0) setError('No transactions found for this account.');
-    } catch (err) {
-      if (err.response) {
-        if (err.response.status === 403 || err.response.status === 401) {
-          setError("You are not authorized to view transactions for this account.");
-        } else {
-          setError("Failed to load transactions. Please check the account number.");
+      
+      if (res.data && Array.isArray(res.data)) {
+        setTransactions(res.data);
+        if (res.data.length === 0) {
+          setError('No transactions found for this account.');
         }
       } else {
-        setError("Network error or server not reachable.");
+        throw new Error('Invalid response format from server');
       }
-      setTransactions([]);
+    } catch (err) {
+      console.error('Transaction fetch error:', err);
+      if (err.response) {
+        if (err.response.status === 403 || err.response.status === 401) {
+          setError('You are not authorized to view these transactions.');
+        } else if (err.response.status === 404) {
+          setError('Account not found or no transactions available.');
+        } else if (err.response.data && err.response.data.message) {
+          setError(err.response.data.message);
+        } else {
+          setError('An error occurred while fetching transactions.');
+        }
+      } else if (err.request) {
+        setError('Network error. Please check your connection.');
+      } else {
+        setError('An unexpected error occurred.');
+      }
     } finally {
       setLoading(false);
     }
   };
 
-  // Cleanly clone the table and apply static styles to avoid 'oklch' in computed colors
+  // PDF Download Logic
   const styleCloneRecursively = (element) => {
-    element.className = ''; // remove all classes
+    element.className = '';
     if (element.style) {
-      // Override all potentially problematic styles:
       element.style.color = element.style.color && element.style.color.includes('oklch') ? '#374151' : element.style.color;
       element.style.backgroundColor = element.style.backgroundColor && element.style.backgroundColor.includes('oklch') ? '#fff' : element.style.backgroundColor;
       element.style.borderColor = element.style.borderColor && element.style.borderColor.includes('oklch') ? '#d1d5db' : element.style.borderColor;
-      
-      // Add some basic padding, border style fallback for readability in PDF:
       if (element.tagName === 'TH' || element.tagName === 'TD') {
         element.style.padding = '8px';
         element.style.border = '1px solid #d1d5db';
@@ -63,12 +126,9 @@ export default function GetAllTransaction() {
         element.style.backgroundColor = element.style.backgroundColor || '#fff';
       }
       if (element.tagName === 'TR') {
-        // Alternate row colors for readability
-        // We can't get index simply here; style a flat color for safety
         element.style.backgroundColor = element.style.backgroundColor || '#fff';
       }
     }
-    // Recurse for children:
     if (element.children && element.children.length > 0) {
       for (let child of element.children) {
         styleCloneRecursively(child);
@@ -76,37 +136,28 @@ export default function GetAllTransaction() {
     }
   };
 
-  // PDF download function 
   const downloadPDF = async () => {
     if (!tableRef.current || transactions.length === 0) {
       setError("No transactions available to download");
       return;
     }
-
     setPdfLoading(true);
     setError('');
-
     try {
-      // Create a temporary invisible container for cloned table
       const pdfContainer = document.createElement('div');
       pdfContainer.style.position = 'absolute';
-      pdfContainer.style.left = '-10000px'; // off screen
+      pdfContainer.style.left = '-10000px';
       pdfContainer.style.top = '0';
       pdfContainer.style.backgroundColor = '#ffffff';
       pdfContainer.style.padding = '20px';
-      pdfContainer.style.width = '1100px'; // enough width for table
-      pdfContainer.style.fontFamily = 'Arial, sans-serif'; // use safe font
+      pdfContainer.style.width = '1100px';
+      pdfContainer.style.fontFamily = 'Arial, sans-serif';
 
-      // Clone the table DOM node
       const tableClone = tableRef.current.cloneNode(true);
-
-      // Clean styles and classes recursively, especially to get rid of oklch colors
       styleCloneRecursively(tableClone);
-
       pdfContainer.appendChild(tableClone);
       document.body.appendChild(pdfContainer);
 
-      // Use html2canvas with high scale for better resolution
       const canvas = await html2canvas(pdfContainer, {
         scale: 2,
         useCORS: true,
@@ -115,75 +166,55 @@ export default function GetAllTransaction() {
         scrollY: 0,
       });
 
-      // Remove the cloned node from DOM after canvas rendered
       document.body.removeChild(pdfContainer);
-
       const imgData = canvas.toDataURL('image/png');
 
-      // Create jsPDF landscape A4 — 842 x 595 units approx
       const pdf = new jsPDF({
         orientation: 'landscape',
         unit: 'pt',
         format: 'a4',
       });
-
       const pdfWidth = pdf.internal.pageSize.getWidth();
       const pdfHeight = pdf.internal.pageSize.getHeight();
 
       const imgProps = pdf.getImageProperties(imgData);
-
-      // Calculate fit keeping ratio
       const ratio = Math.min(pdfWidth / imgProps.width, pdfHeight / imgProps.height);
       const imgWidth = imgProps.width * ratio;
       const imgHeight = imgProps.height * ratio;
-
-      // Center image in PDF
       const x = (pdfWidth - imgWidth) / 2;
       const y = (pdfHeight - imgHeight) / 2;
 
       pdf.addImage(imgData, 'PNG', x, y, imgWidth, imgHeight);
-
       pdf.save(`Transactions_${accountNumber}_${new Date().toISOString().slice(0,10)}.pdf`);
-      
     } catch (err) {
-      console.error("PDF generation error:", err);
       setError("Failed to generate PDF. Please try again or use the print function.");
     } finally {
       setPdfLoading(false);
     }
   };
 
-  // handle Enter key on input
-  const handleKeyPress = (e) => {
-    if (e.key === 'Enter') {
-      fetchTransactions();
-    }
-  };
-
+  // UI
   return (
     <div className="p-4 max-w-6xl mx-auto">
       <div className="bg-white rounded-xl shadow-md p-6 mb-6">
         <h2 className="text-2xl font-bold text-gray-800 mb-4">Transaction History</h2>
-        
         <div className="flex flex-col md:flex-row md:items-end gap-4 mb-6">
           <div className="flex-1">
             <label className="block text-sm font-medium text-gray-700 mb-1">Account Number</label>
-            <input 
-              type="text" 
+            <input
+              type="text"
               value={accountNumber}
-              onChange={e => setAccountNumber(e.target.value)}
-              onKeyPress={handleKeyPress}
-              placeholder="Enter account number (e.g. FCX1000000001)"
-              className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all"
+              readOnly
+              disabled
+              placeholder="Fetching your account number..."
+              className="w-full p-3 border border-gray-300 rounded-lg bg-gray-100 text-gray-700"
               autoComplete="off"
-              disabled={loading}
             />
           </div>
-          
           <div className="flex gap-2">
             <button
               onClick={fetchTransactions}
-              disabled={loading}
+              disabled={inputDisabled || !accountNumber || loading}
               className={`h-12 px-6 flex items-center gap-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 font-medium transition-colors ${
                 loading ? 'opacity-70 cursor-not-allowed' : ''
               }`}
@@ -193,11 +224,8 @@ export default function GetAllTransaction() {
                   <ArrowPathIcon className="w-5 h-5 animate-spin" />
                   Searching...
                 </>
-              ) : (
-                'Search'
-              )}
+              ) : ('Refresh')}
             </button>
-            
             <button
               onClick={downloadPDF}
               disabled={transactions.length === 0 || loading || pdfLoading}
@@ -214,7 +242,7 @@ export default function GetAllTransaction() {
             </button>
           </div>
         </div>
-        
+
         {loading && transactions.length === 0 && (
           <div className="py-8 flex justify-center">
             <div className="animate-pulse flex flex-col items-center">
@@ -223,16 +251,16 @@ export default function GetAllTransaction() {
             </div>
           </div>
         )}
-        
+
         {error && !loading && (
           <div className="py-4 px-4 bg-red-50 rounded-lg border border-red-200">
             <p className="text-red-600">{error}</p>
           </div>
         )}
-        
+
         {!error && !loading && transactions.length === 0 && (
           <div className="py-8 text-center bg-gray-50 rounded-lg">
-            <p className="text-gray-500">No transactions to display. Enter an account number and click Search.</p>
+            <p className="text-gray-500">No transactions to display. Click Refresh to load.</p>
           </div>
         )}
       </div>
@@ -240,7 +268,7 @@ export default function GetAllTransaction() {
       {transactions.length > 0 && (
         <div className="bg-white rounded-xl shadow-md overflow-hidden">
           <div className="overflow-x-auto">
-            <table 
+            <table
               ref={tableRef}
               className="min-w-full divide-y divide-gray-200"
             >
@@ -282,7 +310,13 @@ export default function GetAllTransaction() {
                     <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
                       {txn.toAccount?.accountNumber || '-'}
                     </td>
-                    <td className="px-6 py-4 text-sm text-gray-500">
+                    <td className={`px-6 py-4 text-sm ${
+                      txn.remarks && txn.remarks.includes('Transferred to') 
+                        ? 'text-red-600 font-medium' 
+                        : txn.remarks && txn.remarks !== '-' 
+                        ? 'text-green-600 font-medium' 
+                        : 'text-gray-500'
+                    }`}>
                       {txn.remarks || '-'}
                     </td>
                   </tr>

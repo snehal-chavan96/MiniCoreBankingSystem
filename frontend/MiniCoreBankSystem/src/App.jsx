@@ -21,6 +21,7 @@ const FetchUsersAmmount = lazy(()=>import('./pages/FetchUsersAmmount/FetchUserAm
 const GetFDDataById = lazy(()=>import('./pages/GetFDByIdPage/GetFDDetailsById'));
 const SearchFDStatement = lazy(()=>import('./pages/SearchFDStatement/SearchFDStatement'));
 const CreateFDPage = lazy(()=>import('./pages/CreateFDPage/CreateFDPage'));
+const Chatbot = lazy(()=>import("./pages/Chatbot/Chatbot"));
 const App = () => {
   return (
     <Router>
@@ -35,6 +36,8 @@ const App = () => {
           <Route path="/api/changepassword" element={<ChangePassword />} />
           <Route path="/api/ShowUsers" element={<ShowUsersData/>}/>
           <Route path="/api/kycform" element={<KYCFormPage/>}/>
+          <Route path="/api/chatbot" element={<Chatbot/>}/>
+
           {/* Protected Routes */}
           <Route
             path="/api/user/dashboard"

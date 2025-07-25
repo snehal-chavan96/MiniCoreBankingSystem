@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import axios from "axios";
 
 const FetchUserAmount = () => {
@@ -6,6 +6,54 @@ const FetchUserAmount = () => {
   const [pin, setPin] = useState("");
   const [balance, setBalance] = useState(null);
   const [error, setError] = useState("");
+  const [loading, setLoading] = useState(true);
+  const [accountError, setAccountError] = useState("");
+
+  // Fetch user's account number on component mount
+  useEffect(() => {
+    const fetchAccountNumber = async () => {
+      const token = sessionStorage.getItem("token");
+      const userId = sessionStorage.getItem("userId");
+      
+      if (!userId) {
+        setAccountError("User not authenticated");
+        setLoading(false);
+        return;
+      }
+
+      try {
+        const response = await axios.get(
+          `http://localhost:8085/api/accounts/user/${userId}`,
+          { 
+            headers: { 
+              Authorization: `Bearer ${token}`,
+              'Content-Type': 'application/json'
+            } 
+          }
+        );
+
+        if (Array.isArray(response.data) && response.data.length > 0) {
+          const firstAccount = response.data[0];
+          if (firstAccount.accountNumber) {
+            setAccountNumber(firstAccount.accountNumber);
+            setAccountError("");
+          } else {
+            setAccountError("Account number not found in response");
+          }
+        } else {
+          setAccountError("No accounts found for this user");
+        }
+      } catch (err) {
+        console.error("Error fetching account:", err);
+        const errorMessage = err.response?.data?.message || "Failed to fetch account information";
+        setAccountError(errorMessage);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchAccountNumber();
+  }, []);
 
   const handleCheckBalance = async () => {
     try {
@@ -50,10 +98,16 @@ const FetchUserAmount = () => {
           id="accountNumber"
           type="text"
           value={accountNumber}
-          onChange={(e) => setAccountNumber(e.target.value)}
-          placeholder="e.g., FCX1000000001"
-          className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition-shadow"
+          readOnly
+          disabled={loading}
+          placeholder={loading ? "Loading account number..." : "e.g., FCX1000000001"}
+          className={`w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition-shadow ${
+            loading ? 'bg-gray-100 text-gray-500' : 'bg-gray-100 cursor-not-allowed'
+          }`}
         />
+        {accountError && (
+          <p className="mt-1 text-sm text-red-600">{accountError}</p>
+        )}
       </div>
 
       <div className="mb-6">

@@ -10,12 +10,13 @@ import {
 } from "lucide-react";
 import { ToastContainer } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
+
 import UserTransactionHistory from "../UsersTransactionHistoryPage/UsersTransactionHistoryPage";
 import TransferMoney from "../TransferMoneyPage/TransferMoneyPage";
 import FetchUserAmount from "../FetchUsersAmmount/FetchUserAmmount";
 import SearchFDStatement from '../SearchFDStatement/SearchFDStatement.jsx';
 import CreateFD from "../CreateFDPage/CreateFDPage.jsx"; 
-
+import Chatbot from "../Chatbot/Chatbot.jsx";  // <-- Import Chatbot
 
 const Dashboard = () => {
   const [state, setState] = useState({
@@ -32,22 +33,50 @@ const Dashboard = () => {
     interestTime: '',
     interestResult: null,
     interestType: 'simple',
-    compoundFrequency: '1'
+    compoundFrequency: '1',
+    accountNumber: ''
   });
+
+  // Add chatbot open state
+  const [isChatbotOpen, setIsChatbotOpen] = useState(false);
 
   const username = sessionStorage.getItem("username") || "User";
   const role = sessionStorage.getItem("role") || "user";
   const status = sessionStorage.getItem("status") || "INACTIVE";
+  const userId = sessionStorage.getItem("userId");
   const isActive = status === "ACTIVE";
   const navigate = useNavigate();
 
   useEffect(() => {
     if (!sessionStorage.getItem("username") || !localStorage.getItem("token")) {
       navigate("/api/login");
+    } else if (userId) {
+      const fetchAccountNumber = async () => {
+        try {
+          const token = localStorage.getItem("token") || sessionStorage.getItem("token");
+          const response = await fetch(`http://localhost:8085/api/accounts/user/${userId}`, {
+            headers: {
+              'Authorization': `Bearer ${token}`
+            }
+          });
+          
+          if (response.ok) {
+            const data = await response.json();
+            if (data && data.length > 0) {
+              handleChange('accountNumber', data[0].accountNumber);
+            }
+          }
+        } catch (error) {
+          console.error("Error fetching account number:", error);
+        }
+      };
+      
+      fetchAccountNumber();
     }
-  }, [navigate]);
+  }, [navigate, userId]);
 
   const handleChange = (key, value) => setState(prev => ({ ...prev, [key]: value }));
+
 
   const handleInterestCalculate = (e) => {
     e.preventDefault();
@@ -103,8 +132,8 @@ const Dashboard = () => {
         </div>
       ),
       transfer: (
-        <div className="PerformTransaction">
-          <TransferMoney />
+        <div className="w-full">
+          <TransferMoney accountNumber={state.accountNumber} />
         </div>
       ),
       support: (
@@ -240,7 +269,7 @@ const Dashboard = () => {
           <SearchFDStatement />
         </div>
       ),
-      createFD: (    // <-- Added new view here
+      createFD: (
         <div className="bg-white rounded-2xl shadow-lg p-6 max-w-5xl mx-auto">
           <h2 className="text-2xl font-bold text-gray-800 mb-6">Create Fixed Deposit</h2>
           <CreateFD />
@@ -366,8 +395,35 @@ const Dashboard = () => {
           </div>
         </main>
       </div>
+
       <ToastContainer position="top-right" autoClose={3000} />
+
+      {/* Floating Chatbot Button */}
+      <button
+        className="fixed bottom-6 right-6 z-50 bg-indigo-600 hover:bg-indigo-700 text-white p-4 rounded-full shadow-lg flex items-center justify-center transition"
+        onClick={() => setIsChatbotOpen(true)}
+        aria-label="Open Chatbot"
+      >
+        <MessageSquare className="w-7 h-7" />
+      </button>
+
+      {/* Chatbot Modal */}
+      {isChatbotOpen && (
+        <div className="fixed inset-0 z-50 flex items-end justify-end bg-black/30 backdrop-blur-sm">
+          <div className="relative m-6 w-full max-w-xs">
+            <button
+              onClick={() => setIsChatbotOpen(false)}
+              className="absolute top-2 right-2 p-1 rounded-full bg-white hover:bg-gray-100 shadow"
+              aria-label="Close Chatbot"
+            >
+              <X className="w-5 h-5 text-gray-700" />
+            </button>
+            <Chatbot />
+          </div>
+        </div>
+      )}
     </div>
   );
 };
+
 export default Dashboard;

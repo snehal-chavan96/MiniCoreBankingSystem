@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import axios from 'axios';
 
 export default function TransferMoney() {
@@ -11,11 +11,41 @@ export default function TransferMoney() {
   const [error, setError] = useState('');
 
   const token = localStorage.getItem('token') || sessionStorage.getItem('token');
+  const userId = sessionStorage.getItem('userId'); // 📦 Grab userId from session
+
+  // 🔁 Fetch user's account on component mount
+  useEffect(() => {
+    const fetchAccount = async () => {
+      if (!userId) {
+        setError("User not logged in.");
+        return;
+      }
+
+      try {
+        const response = await axios.get(`http://localhost:8085/api/accounts/user/${userId}`, {
+          headers: {
+            Authorization: `Bearer ${token}`
+          }
+        });
+
+        // 💡 Set fromAccount using first account returned
+        if (Array.isArray(response.data) && response.data.length > 0) {
+          setFromAccount(response.data[0].accountNumber);
+        } else {
+          setError("No account found for user.");
+        }
+      } catch (err) {
+        setError("Failed to fetch account details.");
+      }
+    };
+
+    fetchAccount();
+  }, [userId, token]);
 
   const handleTransfer = async () => {
     setError('');
     setSuccess('');
-    
+
     if (!fromAccount || !toAccount || !amount) {
       setError("Please fill all required fields.");
       return;
@@ -46,7 +76,6 @@ export default function TransferMoney() {
       );
 
       setSuccess(`Transaction successful! Txn ID: ${response.data.txnId}`);
-      setFromAccount('');
       setToAccount('');
       setAmount('');
       setRemarks('');
@@ -69,10 +98,9 @@ export default function TransferMoney() {
           <label className="block text-sm font-medium">From Account Number</label>
           <input
             type="text"
-            className="w-full border border-gray-300 p-2 rounded mt-1"
+            className="w-full border border-gray-300 p-2 rounded mt-1 bg-gray-100"
             value={fromAccount}
-            onChange={(e) => setFromAccount(e.target.value)}
-            placeholder="e.g. FCX1000000008"
+            disabled // Don't allow user to change their own account
           />
         </div>
 

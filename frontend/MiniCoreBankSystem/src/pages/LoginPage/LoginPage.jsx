@@ -39,11 +39,12 @@ const LoginPage = () => {
       if (!userRes.ok) throw new Error("Failed to get user details");
 
       const userData = await userRes.json();
-      const { username, role, status } = userData;
+      const { username, role, status, userId } = userData;
 
       sessionStorage.setItem("username", username);
       sessionStorage.setItem("role", role);
       sessionStorage.setItem("status", status);
+      sessionStorage.setItem("userId", userId);
 
       toast.success("Login successful!");
 
