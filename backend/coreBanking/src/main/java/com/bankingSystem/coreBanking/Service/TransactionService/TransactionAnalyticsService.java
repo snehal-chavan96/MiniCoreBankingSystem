@@ -28,9 +28,8 @@ public class TransactionAnalyticsService {
         return transactionRepo.countByFromAccount_AccountNumberOrToAccount_AccountNumber(accountNumber, accountNumber);
     }
 
-    public List<Transaction> getTransactionsForAccount(String accountNumber) {
-        return transactionRepo.findByFromAccount_AccountNumberOrToAccount_AccountNumber(accountNumber, accountNumber);
-    }
+
+
 
     public List<Transaction> getAllTransactions() {
         return transactionRepo.findAll();

@@ -1,297 +1,343 @@
-import React, { useState, useRef } from 'react';
-import axios from 'axios';
-import { ArrowDownTrayIcon, ArrowPathIcon } from '@heroicons/react/24/outline';
-import { jsPDF } from 'jspdf';
-import html2canvas from 'html2canvas';
+import React, { useEffect, useMemo, useState, useRef } from "react";
+import axios from "axios";
 
-export default function GetAllTransaction() {
-  const [accountNumber, setAccountNumber] = useState('');
-  const [transactions, setTransactions] = useState([]);
-  const [loading, setLoading] = useState(false);
-  const [pdfLoading, setPdfLoading] = useState(false);
-  const [error, setError] = useState('');
-  const tableRef = useRef();
+const API_BASE = import.meta?.env?.VITE_API_BASE || "http://localhost:8085";
+const ADMIN_ENDPOINT = `${API_BASE}/api/transactions/admin/txnStmt`;
 
-  const token = localStorage.getItem("token") || sessionStorage.getItem("token");
+const pageSizes = [10, 20, 50, 100];
 
-  const fetchTransactions = async () => {
-    setTransactions([]);
-    setError('');
-    if (!accountNumber) {
-      setError('Please enter an account number.');
-      return;
+const StatusBadge = ({ status }) => {
+  const base = "px-3 py-1 rounded-full text-xs font-semibold inline-flex items-center";
+  const cls =
+    status === "SUCCESS"
+      ? "bg-green-50 text-green-700"
+      : status === "FAILED"
+      ? "bg-red-50 text-red-700"
+      : "bg-yellow-50 text-yellow-700";
+  return <span className={`${base} ${cls}`}>{status}</span>;
+};
+
+const DemoAdminTransactions = () => {
+  const [rows, setRows] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [err, setErr] = useState("");
+
+  const [q, setQ] = useState("");
+  const [status, setStatus] = useState("ALL");
+  const [fromDate, setFromDate] = useState("");
+  const [toDate, setToDate] = useState("");
+
+  const [page, setPage] = useState(0);
+  const [pageSize, setPageSize] = useState(20);
+
+  const tableRef = useRef(null);
+
+  useEffect(() => {
+    const fetchData = async () => {
+      setLoading(true);
+      setErr("");
+      try {
+        const res = await axios.get(ADMIN_ENDPOINT);
+        setRows(Array.isArray(res.data) ? res.data : []);
+      } catch (e) {
+        console.error("Error fetching admin transactions:", e);
+        setErr(
+          e?.response?.data?.message ||
+          e?.message ||
+          "Failed to load transactions"
+        );
+      } finally {
+        setLoading(false);
+      }
+    };
+    fetchData();
+  }, []);
+
+  const filtered = useMemo(() => {
+    let data = rows;
+    if (status !== "ALL") {
+      data = data.filter((r) => r.status === status);
     }
-    setLoading(true);
-    try {
-      const res = await axios.get(
-        `http://localhost:8085/api/transactions/account/${accountNumber}`,
-        { headers: { Authorization: `Bearer ${token}` } }
+    if (fromDate) {
+      const from = new Date(fromDate + "T00:00:00");
+      data = data.filter((r) => new Date(r.txnTime) >= from);
+    }
+    if (toDate) {
+      const to = new Date(toDate + "T23:59:59");
+      data = data.filter((r) => new Date(r.txnTime) <= to);
+    }
+    if (q.trim()) {
+      const tq = q.trim().toLowerCase();
+      data = data.filter(
+        (r) =>
+          (r.referenceId || "").toLowerCase().includes(tq) ||
+          (r.fromAccount || "").toLowerCase().includes(tq) ||
+          (r.toAccount || "").toLowerCase().includes(tq)
       );
-      setTransactions(res.data);
-      if (res.data.length === 0) setError('No transactions found for this account.');
-    } catch (err) {
-      if (err.response) {
-        if (err.response.status === 403 || err.response.status === 401) {
-          setError("You are not authorized to view transactions for this account.");
-        } else {
-          setError("Failed to load transactions. Please check the account number.");
-        }
-      } else {
-        setError("Network error or server not reachable.");
-      }
-      setTransactions([]);
-    } finally {
-      setLoading(false);
     }
+    return data.slice().sort((a, b) => new Date(b.txnTime) - new Date(a.txnTime));
+  }, [rows, q, status, fromDate, toDate]);
+
+  const pageCount = Math.max(1, Math.ceil(filtered.length / pageSize));
+  const currentPage = Math.min(page, pageCount - 1);
+
+  const paged = useMemo(() => {
+    const start = currentPage * pageSize;
+    return filtered.slice(start, start + pageSize);
+  }, [filtered, currentPage, pageSize]);
+
+  const resetPagination = () => setPage(0);
+  useEffect(() => {
+    resetPagination();
+  }, [status, fromDate, toDate, q, pageSize]);
+
+  const exportCSV = () => {
+    const headers = [
+      "Reference ID",
+      "From Account",
+      "To Account",
+      "Amount",
+      "Status",
+      "Txn Time",
+    ];
+    const lines = filtered.map((r) => [
+      `"${r.referenceId || ""}"`,
+      `"${r.fromAccount || ""}"`,
+      `"${r.toAccount || ""}"`,
+      `${r.amount ?? ""}`,
+      `"${r.status || ""}"`,
+      `"${new Date(r.txnTime).toLocaleString()}"`,
+    ]);
+    const csv = [headers.join(","), ...lines.map(l => l.join(","))].join("\n");
+    const blob = new Blob([csv], { type: "text/csv;charset=utf-8;" });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement("a");
+    a.href = url;
+    const dateTag = new Date().toISOString().slice(0, 19).replace(/[:T]/g, "-");
+    a.download = `admin-transactions-${dateTag}.csv`;
+    a.click();
+    URL.revokeObjectURL(url);
   };
 
-  // Cleanly clone the table and apply static styles to avoid 'oklch' in computed colors
-  const styleCloneRecursively = (element) => {
-    element.className = ''; // remove all classes
-    if (element.style) {
-      // Override all potentially problematic styles:
-      element.style.color = element.style.color && element.style.color.includes('oklch') ? '#374151' : element.style.color;
-      element.style.backgroundColor = element.style.backgroundColor && element.style.backgroundColor.includes('oklch') ? '#fff' : element.style.backgroundColor;
-      element.style.borderColor = element.style.borderColor && element.style.borderColor.includes('oklch') ? '#d1d5db' : element.style.borderColor;
-      
-      // Add some basic padding, border style fallback for readability in PDF:
-      if (element.tagName === 'TH' || element.tagName === 'TD') {
-        element.style.padding = '8px';
-        element.style.border = '1px solid #d1d5db';
-        element.style.textAlign = 'left';
-        element.style.color = element.style.color || '#374151';
-        element.style.backgroundColor = element.style.backgroundColor || '#fff';
-      }
-      if (element.tagName === 'TR') {
-        // Alternate row colors for readability
-        // We can't get index simply here; style a flat color for safety
-        element.style.backgroundColor = element.style.backgroundColor || '#fff';
-      }
-    }
-    // Recurse for children:
-    if (element.children && element.children.length > 0) {
-      for (let child of element.children) {
-        styleCloneRecursively(child);
-      }
-    }
-  };
+  const handlePrint = () => {
+    if (!tableRef.current) return;
 
-  // PDF download function 
-  const downloadPDF = async () => {
-    if (!tableRef.current || transactions.length === 0) {
-      setError("No transactions available to download");
-      return;
-    }
+    const printWindow = window.open("", "_blank", "top=100,left=100,height=600,width=800");
+    const style = `
+      <style>
+        body { font-family: Arial, sans-serif; margin: 20px; }
+        table { border-collapse: collapse; width: 100%; }
+        th, td { border: 1px solid #ddd; padding: 8px; }
+        th { background-color: #f3f4f6; }
+        tr:nth-child(even) { background-color: #f9fafb; }
+        .status-success { color: green; font-weight: bold; }
+        .status-failed { color: red; font-weight: bold; }
+        .status-pending { color: orange; font-weight: bold; }
+      </style>
+    `;
 
-    setPdfLoading(true);
-    setError('');
+    const html = `
+      <html>
+        <head>
+          <title>Transaction Report</title>
+          ${style}
+        </head>
+        <body>
+          <h1>Transaction Report</h1>
+          ${tableRef.current.outerHTML}
+        </body>
+      </html>
+    `;
 
-    try {
-      // Create a temporary invisible container for cloned table
-      const pdfContainer = document.createElement('div');
-      pdfContainer.style.position = 'absolute';
-      pdfContainer.style.left = '-10000px'; // off screen
-      pdfContainer.style.top = '0';
-      pdfContainer.style.backgroundColor = '#ffffff';
-      pdfContainer.style.padding = '20px';
-      pdfContainer.style.width = '1100px'; // enough width for table
-      pdfContainer.style.fontFamily = 'Arial, sans-serif'; // use safe font
+    printWindow.document.write(html);
+    printWindow.document.close();
+    printWindow.focus();
 
-      // Clone the table DOM node
-      const tableClone = tableRef.current.cloneNode(true);
-
-      // Clean styles and classes recursively, especially to get rid of oklch colors
-      styleCloneRecursively(tableClone);
-
-      pdfContainer.appendChild(tableClone);
-      document.body.appendChild(pdfContainer);
-
-      // Use html2canvas with high scale for better resolution
-      const canvas = await html2canvas(pdfContainer, {
-        scale: 2,
-        useCORS: true,
-        backgroundColor: '#ffffff',
-        scrollX: 0,
-        scrollY: 0,
-      });
-
-      // Remove the cloned node from DOM after canvas rendered
-      document.body.removeChild(pdfContainer);
-
-      const imgData = canvas.toDataURL('image/png');
-
-      // Create jsPDF landscape A4 — 842 x 595 units approx
-      const pdf = new jsPDF({
-        orientation: 'landscape',
-        unit: 'pt',
-        format: 'a4',
-      });
-
-      const pdfWidth = pdf.internal.pageSize.getWidth();
-      const pdfHeight = pdf.internal.pageSize.getHeight();
-
-      const imgProps = pdf.getImageProperties(imgData);
-
-      // Calculate fit keeping ratio
-      const ratio = Math.min(pdfWidth / imgProps.width, pdfHeight / imgProps.height);
-      const imgWidth = imgProps.width * ratio;
-      const imgHeight = imgProps.height * ratio;
-
-      // Center image in PDF
-      const x = (pdfWidth - imgWidth) / 2;
-      const y = (pdfHeight - imgHeight) / 2;
-
-      pdf.addImage(imgData, 'PNG', x, y, imgWidth, imgHeight);
-
-      pdf.save(`Transactions_${accountNumber}_${new Date().toISOString().slice(0,10)}.pdf`);
-      
-    } catch (err) {
-      console.error("PDF generation error:", err);
-      setError("Failed to generate PDF. Please try again or use the print function.");
-    } finally {
-      setPdfLoading(false);
-    }
-  };
-
-  // handle Enter key on input
-  const handleKeyPress = (e) => {
-    if (e.key === 'Enter') {
-      fetchTransactions();
-    }
+    setTimeout(() => {
+      printWindow.print();
+      printWindow.close();
+    }, 500);
   };
 
   return (
-    <div className="p-4 max-w-6xl mx-auto">
-      <div className="bg-white rounded-xl shadow-md p-6 mb-6">
-        <h2 className="text-2xl font-bold text-gray-800 mb-4">Transaction History</h2>
-        
-        <div className="flex flex-col md:flex-row md:items-end gap-4 mb-6">
-          <div className="flex-1">
-            <label className="block text-sm font-medium text-gray-700 mb-1">Account Number</label>
-            <input 
-              type="text" 
-              value={accountNumber}
-              onChange={e => setAccountNumber(e.target.value)}
-              onKeyPress={handleKeyPress}
-              placeholder="Enter account number (e.g. FCX1000000001)"
-              className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all"
-              autoComplete="off"
-              disabled={loading}
-            />
-          </div>
-          
-          <div className="flex gap-2">
-            <button
-              onClick={fetchTransactions}
-              disabled={loading}
-              className={`h-12 px-6 flex items-center gap-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 font-medium transition-colors ${
-                loading ? 'opacity-70 cursor-not-allowed' : ''
-              }`}
-            >
-              {loading ? (
-                <>
-                  <ArrowPathIcon className="w-5 h-5 animate-spin" />
-                  Searching...
-                </>
-              ) : (
-                'Search'
-              )}
-            </button>
-            
-            <button
-              onClick={downloadPDF}
-              disabled={transactions.length === 0 || loading || pdfLoading}
-              className={`h-12 px-4 flex items-center gap-2 bg-green-600 text-white rounded-lg hover:bg-green-700 font-medium transition-colors ${
-                transactions.length === 0 || loading || pdfLoading ? 'opacity-70 cursor-not-allowed' : ''
-              }`}
-            >
-              {pdfLoading ? (
-                <ArrowPathIcon className="w-5 h-5 animate-spin" />
-              ) : (
-                <ArrowDownTrayIcon className="w-5 h-5" />
-              )}
-              {pdfLoading ? 'Generating...' : 'Download PDF'}
-            </button>
-          </div>
-        </div>
-        
-        {loading && transactions.length === 0 && (
-          <div className="py-8 flex justify-center">
-            <div className="animate-pulse flex flex-col items-center">
-              <ArrowPathIcon className="w-10 h-10 text-blue-500 animate-spin mb-2" />
-              <p className="text-gray-600">Loading transactions...</p>
-            </div>
-          </div>
-        )}
-        
-        {error && !loading && (
-          <div className="py-4 px-4 bg-red-50 rounded-lg border border-red-200">
-            <p className="text-red-600">{error}</p>
-          </div>
-        )}
-        
-        {!error && !loading && transactions.length === 0 && (
-          <div className="py-8 text-center bg-gray-50 rounded-lg">
-            <p className="text-gray-500">No transactions to display. Enter an account number and click Search.</p>
-          </div>
-        )}
+    <div className="max-w-7xl mx-auto p-6">
+      <div className="mb-6">
+        <h1 className="text-2xl font-bold text-gray-900">Transaction Management</h1>
+        <p className="text-sm text-gray-500 mt-1">View and manage all system transactions</p>
       </div>
 
-      {transactions.length > 0 && (
-        <div className="bg-white rounded-xl shadow-md overflow-hidden">
-          <div className="overflow-x-auto">
-            <table 
-              ref={tableRef}
-              className="min-w-full divide-y divide-gray-200"
+      {/* Filters */}
+      <div className="bg-white rounded-lg shadow-sm border p-5 mb-6">
+        <div className="grid grid-cols-1 md:grid-cols-5 gap-4">
+          <div className="md:col-span-2">
+            <label className="block text-sm font-medium text-gray-700 mb-1">Search</label>
+            <input
+              type="text"
+              placeholder="Reference, From, or To"
+              value={q}
+              onChange={(e) => setQ(e.target.value)}
+              className="w-full border-gray-300 rounded-md shadow-sm focus:border-blue-500 focus:ring-blue-500 py-2 px-3 border"
+            />
+          </div>
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-1">Status</label>
+            <select
+              value={status}
+              onChange={(e) => setStatus(e.target.value)}
+              className="w-full border-gray-300 rounded-md shadow-sm focus:border-blue-500 focus:ring-blue-500 py-2 px-3 border"
             >
-              <thead className="bg-gray-50">
-                <tr>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">ID</th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Amount</th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Type</th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Date</th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">From Account</th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">To Account</th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Remarks</th>
-                </tr>
-              </thead>
-              <tbody className="bg-white divide-y divide-gray-200">
-                {transactions.map((txn) => (
-                  <tr key={txn.txnId || txn.id} className="hover:bg-gray-50">
-                    <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">{txn.txnId}</td>
-                    <td className={`px-6 py-4 whitespace-nowrap text-sm ${
-                      txn.txnType === 'CREDIT' ? 'text-green-600' : 'text-red-600'
-                    }`}>
-                      ₹{parseFloat(txn.amount).toLocaleString('en-IN')}
-                    </td>
-                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                      <span className={`px-2 py-1 inline-flex text-xs leading-5 font-semibold rounded-full ${
-                        txn.txnType === 'CREDIT' 
-                          ? 'bg-green-100 text-green-800' 
-                          : 'bg-red-100 text-red-800'
-                      }`}>
-                        {txn.txnType}
-                      </span>
-                    </td>
-                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                      {new Date(txn.txnTime).toLocaleString()}
-                    </td>
-                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                      {txn.fromAccount?.accountNumber || '-'}
-                    </td>
-                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                      {txn.toAccount?.accountNumber || '-'}
-                    </td>
-                    <td className="px-6 py-4 text-sm text-gray-500">
-                      {txn.remarks || '-'}
-                    </td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
+              <option value="ALL">All Status</option>
+              <option value="SUCCESS">SUCCESS</option>
+              <option value="FAILED">FAILED</option>
+              <option value="PENDING">PENDING</option>
+            </select>
+          </div>
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-1">From Date</label>
+            <input
+              type="date"
+              value={fromDate}
+              onChange={(e) => setFromDate(e.target.value)}
+              className="w-full border-gray-300 rounded-md shadow-sm focus:border-blue-500 focus:ring-blue-500 py-2 px-3 border"
+            />
+          </div>
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-1">To Date</label>
+            <input
+              type="date"
+              value={toDate}
+              onChange={(e) => setToDate(e.target.value)}
+              className="w-full border-gray-300 rounded-md shadow-sm focus:border-blue-500 focus:ring-blue-500 py-2 px-3 border"
+            />
           </div>
         </div>
-      )}
+        <div className="mt-4 flex justify-between">
+          <button
+            onClick={exportCSV}
+            className="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
+          >
+            Export CSV
+          </button>
+          <button
+            onClick={handlePrint}
+            className="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md text-white bg-green-600 hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-green-500"
+          >
+            Print PDF
+          </button>
+        </div>
+      </div>
+
+      {/* Results */}
+      <div className="bg-white rounded-lg shadow-sm border overflow-hidden" ref={tableRef}>
+        {loading ? (
+          <div className="p-8 text-center text-gray-500">
+            <div className="animate-pulse flex flex-col items-center">
+              <div className="h-2 bg-gray-200 rounded w-1/2 mb-4"></div>
+              <div className="h-2 bg-gray-200 rounded w-3/4"></div>
+            </div>
+          </div>
+        ) : err ? (
+          <div className="p-6 text-center text-red-600 bg-red-50">
+            <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6 mx-auto mb-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1} d="M12 12v.01M12 18a6 6 0 100-12 6 6 0 000 12z" />
+            </svg>
+            {err}
+          </div>
+        ) : (
+          <>
+            <div className="overflow-x-auto">
+              <table className="min-w-full divide-y divide-gray-200">
+                <thead className="bg-gray-50">
+                  <tr>
+                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Reference ID</th>
+                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">From Account</th>
+                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">To Account</th>
+                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Amount</th>
+                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Status</th>
+                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Txn Time</th>
+                  </tr>
+                </thead>
+                <tbody className="bg-white divide-y divide-gray-200">
+                  {paged.length > 0 ? (
+                    paged.map((r) => (
+                      <tr key={`${r.referenceId}-${r.txnTime}`} className="hover:bg-gray-50">
+                        <td className="px-6 py-4 whitespace-nowrap text-sm font-mono text-gray-900">{r.referenceId}</td>
+                        <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{r.fromAccount}</td>
+                        <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{r.toAccount}</td>
+                        <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">{Number(r.amount).toLocaleString()}</td>
+                        <td className="px-6 py-4 whitespace-nowrap text-sm">
+                          <StatusBadge status={r.status} />
+                        </td>
+                        <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{r.txnTime ? new Date(r.txnTime).toLocaleString() : "—"}</td>
+                      </tr>
+                    ))
+                  ) : (
+                    <tr>
+                      <td colSpan={6} className="px-6 py-8 text-center text-gray-500">
+                        No transactions found matching criteria.
+                      </td>
+                    </tr>
+                  )}
+                </tbody>
+              </table>
+            </div>
+
+            {/* Pagination and controls */}
+            {filtered.length > 0 && (
+              <div className="bg-gray-50 px-6 py-3 flex flex-col md:flex-row items-center justify-between border-t border-gray-200">
+                <div className="flex items-center mb-4 md:mb-0">
+                  <span className="text-sm text-gray-700 mr-2">Show</span>
+                  <select
+                    value={pageSize}
+                    onChange={(e) => setPageSize(Number(e.target.value))}
+                    className="border-gray-300 rounded-md shadow-sm focus:border-blue-500 focus:ring-blue-500 py-1 px-2 text-sm"
+                  >
+                    {pageSizes.map((size) => (
+                      <option key={size} value={size}>{size}</option>
+                    ))}
+                  </select>
+                  <span className="text-sm text-gray-700 ml-2">entries</span>
+                </div>
+                <div className="text-sm text-gray-700 mb-4 md:mb-0">
+                  Showing {currentPage * pageSize + 1} to {Math.min((currentPage + 1) * pageSize, filtered.length)} of {filtered.length} results
+                </div>
+                <div className="flex space-x-1">
+                  <button
+                    onClick={() => setPage(0)}
+                    disabled={currentPage === 0}
+                    className="relative inline-flex items-center px-3 py-1 rounded-l-md border border-gray-300 bg-white text-sm font-medium text-gray-700 hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed"
+                  >
+                    First
+                  </button>
+                  <button
+                    onClick={() => setPage((p) => Math.max(0, p - 1))}
+                    disabled={currentPage === 0}
+                    className="relative inline-flex items-center px-3 py-1 border border-gray-300 bg-white text-sm font-medium text-gray-700 hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed"
+                  >
+                    Previous
+                  </button>
+                  <button
+                    onClick={() => setPage((p) => Math.min(pageCount - 1, p + 1))}
+                    disabled={currentPage >= pageCount - 1}
+                    className="relative inline-flex items-center px-3 py-1 border border-gray-300 bg-white text-sm font-medium text-gray-700 hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed"
+                  >
+                    Next
+                  </button>
+                  <button
+                    onClick={() => setPage(pageCount - 1)}
+                    disabled={currentPage >= pageCount - 1}
+                    className="relative inline-flex items-center px-3 py-1 rounded-r-md border border-gray-300 bg-white text-sm font-medium text-gray-700 hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed"
+                  >
+                    Last
+                  </button>
+                </div>
+              </div>
+            )}
+          </>
+        )}
+      </div>
     </div>
   );
-}
+};
+
+export default DemoAdminTransactions;

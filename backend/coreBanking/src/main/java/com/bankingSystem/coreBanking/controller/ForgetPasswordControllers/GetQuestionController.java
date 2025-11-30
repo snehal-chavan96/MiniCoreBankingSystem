@@ -21,23 +21,26 @@ public class GetQuestionController {
 
     @GetMapping("/security-question/{username}")
     public ResponseEntity<?> getQuestionAccordingToUsername(@PathVariable String username) {
-        logger.info("Received request to get security question for username: {}", username);
+        logger.info("Received request to fetch security question for username: {}", username);
 
         try {
-            SignUpUserEntity user = userSignUpRepo.findByUsername(username.trim());
+            String trimmedUsername = username.trim();
+            logger.debug("Trimmed username: {}", trimmedUsername);
+
+            SignUpUserEntity user = userSignUpRepo.findByUsername(trimmedUsername);
 
             if (user == null) {
-                logger.warn("User not found with username: {}", username);
+                logger.warn("User not found for username: {}", trimmedUsername);
                 return ResponseEntity.status(HttpStatus.NOT_FOUND)
                         .body("User of the given username doesn't exist!");
             }
 
             String question = user.getQuestionLists().getQuestion();
-            logger.info("Security question retrieved for username {}: {}", username, question);
+            logger.info("Security question for username '{}' successfully retrieved: {}", trimmedUsername, question);
             return ResponseEntity.ok(question);
 
         } catch (Exception e) {
-            logger.error("Error retrieving security question for username {}: {}", username, e.getMessage());
+            logger.error("Exception occurred while fetching question for username '{}': {}", username, e.getMessage(), e);
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
                     .body("Something went wrong: " + e.getMessage());
         }

@@ -33,15 +33,16 @@ public class UserSignUpController {
     @PostMapping("/signUp")
     @CrossOrigin("http://localhost:5173")
     public ResponseEntity<?> userLogin(@RequestBody SignUpUserEntity signupData) {
-        logger.info("Attempting signup for username: {}", signupData.getUsername());
+        logger.info("🔐 Attempting signup for username: {}", signupData.getUsername());
 
         signupData.setHashPassword(encoder.encode(signupData.getHashPassword()));
+
         try {
             SignUpUserEntity savedUser = userSignUpService.register(signupData);
-            logger.info("User created successfully: {}", savedUser.getUsername());
+            logger.info("✅ User created successfully: {}", savedUser.getUsername());
             return ResponseEntity.ok(savedUser);
         } catch (RuntimeException e) {
-            logger.warn("Signup failed for username: {} - Reason: {}", signupData.getUsername(), e.getMessage());
+            logger.warn("❌ Signup failed for username: {} | Reason: {}", signupData.getUsername(), e.getMessage());
             return ResponseEntity.status(409).body(e.getMessage());
         }
     }
@@ -51,8 +52,10 @@ public class UserSignUpController {
 
     @GetMapping("/getUsers")
     public List<AllUsersDataDTO> getUsers() {
-        logger.info("Fetching all users");
-        return getAllUserService.getAllUsers();
+        logger.info("📥 Fetching all users from database...");
+        List<AllUsersDataDTO> userList = getAllUserService.getAllUsers();
+        logger.info("📦 Total users fetched: {}", userList.size());
+        return userList;
     }
 
     @Autowired
@@ -60,7 +63,13 @@ public class UserSignUpController {
 
     @GetMapping("/user/{username}")
     public SignUpUserEntity getUserByUsername(@PathVariable String username) {
-        logger.info("Fetching user by username: {}", username);
-        return userByusername.findByUsername(username);
+        logger.info("🔍 Fetching user by username: {}", username);
+        SignUpUserEntity user = userByusername.findByUsername(username);
+        if (user != null) {
+            logger.info("✅ User found: {}", user.getUsername());
+        } else {
+            logger.warn("⚠️ No user found with username: {}", username);
+        }
+        return user;
     }
 }

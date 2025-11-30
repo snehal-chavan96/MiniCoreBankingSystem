@@ -40,6 +40,9 @@ public class Transaction {
     @Column(columnDefinition = "TEXT")
     private String remarks;
 
+    @Column(name = "transaction_reference_id")
+    private String transactionReferenceId;
+
     @Column(nullable = false)
     private LocalDateTime txnTime = LocalDateTime.now();
 

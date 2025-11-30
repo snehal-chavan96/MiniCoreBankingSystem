@@ -1,0 +1,46 @@
+<button id="pay-button" style="background-color: transparent; padding: 1rem; border-radius: 5rem; background-color: aquamarine; cursor: pointer;">Pay Now</button>
+<div id="result" style="margin-top:1em; font-family:monospace; background:#f7fafc; border-radius:6px; padding:12px;"></div>
+<script src="https://checkout.razorpay.com/v1/checkout.js"></script>
+
+<script>
+    document.getElementById('pay-button').onclick = function () {
+        fetch('http://localhost:8085/api/payments/create-order?amount=1000&currency=INR', {
+            method: 'POST'
+        })
+        .then(response => response.json())
+        .then(order => {
+            const options = {
+                key: "rzp_test_J6aspcdNViF6Yi", // Replace with your Razorpay API Key
+                amount: order.amount,
+                currency: order.currency,
+                name: "Core Bank",
+                description: "Test Transaction",
+                order_id: order.id,
+                handler: function (response) {
+                    alert("Payment Successful! Payment ID: " + response.razorpay_payment_id);
+
+                    // Show fdFormData from sessionStorage
+                    const dataStr = sessionStorage.getItem('fdFormData');
+                    let html = "";
+                    if (dataStr) {
+                        try {
+                            const data = JSON.parse(dataStr);
+                            html = "<pre>" + JSON.stringify(data, null, 2) + "</pre>";
+                        } catch (e) {
+                            html = "<code>" + dataStr + "</code>";
+                        }
+                    } else {
+                        html = "<span style='color:darkred'>No fdFormData found in sessionStorage.</span>";
+                    }
+                    document.getElementById('result').innerHTML = html;
+                },
+                theme: {
+                    color: "#3399cc"
+                }
+            };
+            const rzp = new Razorpay(options);
+            rzp.open();
+        })
+        .catch(err => console.error(err));
+    };
+</script>
