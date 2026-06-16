@@ -1,10 +1,10 @@
-# 💳 Mini Core Banking System
+# Mini Core Banking System
 
-![Java](https://img.shields.io/badge/Java-17-orange?style=for-the-badge&logo=openjdk)
-![Spring Boot](https://img.shields.io/badge/Spring_Boot-3.x-brightgreen?style=for-the-badge&logo=springboot)
-![React](https://img.shields.io/badge/React-Frontend-61DAFB?style=for-the-badge&logo=react)
-![MySQL](https://img.shields.io/badge/MySQL-Database-4479A1?style=for-the-badge&logo=mysql)
-![Docker](https://img.shields.io/badge/Docker-Deployment-2496ED?style=for-the-badge&logo=docker)
+![Java](https://img.shields.io/badge/Java-17-orange?style=for-the-badge\&logo=openjdk)
+![Spring Boot](https://img.shields.io/badge/Spring_Boot-3.x-brightgreen?style=for-the-badge\&logo=springboot)
+![React](https://img.shields.io/badge/React-Frontend-61DAFB?style=for-the-badge\&logo=react)
+![MySQL](https://img.shields.io/badge/MySQL-Database-4479A1?style=for-the-badge\&logo=mysql)
+![Docker](https://img.shields.io/badge/Docker-Deployment-2496ED?style=for-the-badge\&logo=docker)
 
 A full-stack banking application that simulates core banking operations such as account management, KYC verification, fund transfers, fixed deposits, loan processing, transaction analytics, and secure user authentication.
 
@@ -12,16 +12,16 @@ Built with a modern tech stack and designed to be deployment-ready using Docker 
 
 ---
 
-## 🚀 Features
+## Features
 
-### 👤 User Management
+### User Management
 
 * User Registration & Login
 * JWT-based Authentication & Authorization
 * Forgot Password & Account Recovery
 * OTP Verification for Enhanced Security
 
-### 🏦 Banking Operations
+### Banking Operations
 
 * Create and Manage Bank Accounts
 * Fund Transfer Between Accounts
@@ -29,31 +29,31 @@ Built with a modern tech stack and designed to be deployment-ready using Docker 
 * Account Balance Tracking
 * Monthly Statement Generation
 
-### 📄 KYC Management
+### KYC Management
 
 * KYC Form Submission
 * Document Verification Workflow
 * User Profile Management
 
-### 💰 Fixed Deposits
+### Fixed Deposits
 
 * Create Fixed Deposits
 * View FD Details & Statements
 * Interest Calculation and Tracking
 
-### 📈 Analytics & Reporting
+### Analytics & Reporting
 
 * Transaction Analytics Dashboard
 * User Financial Insights
 * Admin Transaction Monitoring
 
-### 🤖 Smart Features
+### Smart Features
 
 * Banking Chatbot Assistance
 * Online Payment Integration
 * Automated Notifications & Email Services
 
-### 🚢 Deployment & DevOps
+### Deployment & DevOps
 
 * Dockerized Frontend & Backend
 * Environment Variable (`.env`) Based Configuration
@@ -61,7 +61,7 @@ Built with a modern tech stack and designed to be deployment-ready using Docker 
 
 ---
 
-## 🛠️ Tech Stack
+## Tech Stack
 
 ### Backend
 
@@ -91,7 +91,7 @@ Built with a modern tech stack and designed to be deployment-ready using Docker 
 
 ---
 
-## 📂 Project Structure
+## Project Structure
 
 ```text
 MiniCoreBankingSystem/
@@ -111,7 +111,7 @@ MiniCoreBankingSystem/
 └── Docker Configuration
 ```
 
-## 🔒 Security Features
+## Security Features
 
 * JWT Authentication
 * Protected API Endpoints
@@ -121,7 +121,7 @@ MiniCoreBankingSystem/
 
 ---
 
-## ⚙️ Getting Started
+## Getting Started
 
 ### Prerequisites
 
@@ -154,7 +154,7 @@ docker compose up --build
 
 ---
 
-## 📸 Screenshots
+## Screenshots
 
 Add screenshots of:
 
@@ -167,7 +167,7 @@ Add screenshots of:
 
 ---
 
-## 🎯 Future Enhancements
+## Future Enhancements
 
 * Advanced Admin Dashboard
 * SMS Notifications
@@ -178,6 +178,6 @@ Add screenshots of:
 
 ---
 
-## 👨‍💻 Author
+## Author
 
 Developed as a full-stack banking application to demonstrate enterprise-level backend development, secure authentication, financial transaction handling, and modern deployment practices.
