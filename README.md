@@ -1,5 +1,13 @@
 # 💳 Mini Core Banking System
 
+![Java](https://img.shields.io/badge/Java-17-orange?style=for-the-badge&logo=openjdk)
+![Spring Boot](https://img.shields.io/badge/Spring_Boot-3.x-brightgreen?style=for-the-badge&logo=springboot)
+![React](https://img.shields.io/badge/React-Frontend-61DAFB?style=for-the-badge&logo=react)
+![MySQL](https://img.shields.io/badge/MySQL-Database-4479A1?style=for-the-badge&logo=mysql)
+![JWT](https://img.shields.io/badge/JWT-Authentication-black?style=for-the-badge&logo=jsonwebtokens)
+![Docker](https://img.shields.io/badge/Docker-Deployment-2496ED?style=for-the-badge&logo=docker)
+![Status](https://img.shields.io/badge/Status-Active-success?style=for-the-badge)
+
 A full-stack banking application that simulates core banking operations such as account management, KYC verification, fund transfers, fixed deposits, loan processing, transaction analytics, and secure user authentication.
 
 Built with a modern tech stack and designed to be deployment-ready using Docker and environment-based configuration.
