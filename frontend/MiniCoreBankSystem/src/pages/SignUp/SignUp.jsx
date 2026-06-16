@@ -106,7 +106,7 @@ const SignUp = () => {
 
         <div className="md:w-3/5 p-8 md:p-10">
           <h2 className="text-2xl font-bold text-gray-800 mb-6">
-            Create Account
+            Register User
           </h2>
 
           <form className="space-y-4" onSubmit={handleSubmit}>

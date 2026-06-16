@@ -1,9 +1,11 @@
 package com.bankingSystem.coreBanking.controller.LoginControllers;
 
-import com.bankingSystem.coreBanking.DTO.LoginDTO;
+import com.bankingSystem.coreBanking.DTO.AuthDTO.LoginDTO;
 import com.bankingSystem.coreBanking.Service.UserAuthService.UserAuthService;
 import com.bankingSystem.coreBanking.Util.JwtUtil;
 import jakarta.validation.Valid;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.validation.BindingResult;
@@ -16,6 +18,8 @@ import java.util.Map;
 @CrossOrigin("http://localhost:5173")
 public class LoginAuthController {
 
+    private static final Logger logger = LoggerFactory.getLogger(LoginAuthController.class);
+
     @Autowired
     private UserAuthService userAuthService;
 
@@ -25,9 +29,12 @@ public class LoginAuthController {
     @PostMapping("/login")
     public ResponseEntity<?> login(@Valid @RequestBody LoginDTO loginCredentials, BindingResult bindingResult) {
 
+        logger.info("Login attempt received for username: {}", loginCredentials.getUsername());
+
         if (bindingResult.hasErrors()) {
             String errorMessage = bindingResult.getFieldError().getDefaultMessage();
-            return ResponseEntity.badRequest().body(Map.of("message", errorMessage)); // 🔒 JSON on bad input
+            logger.warn("Validation error for login: {}", errorMessage);
+            return ResponseEntity.badRequest().body(Map.of("message", errorMessage));
         }
 
         boolean authenticated = userAuthService.verifyUsersCredential(
@@ -36,8 +43,10 @@ public class LoginAuthController {
         );
 
         if (authenticated) {
+            logger.info("Authentication successful for username: {}", loginCredentials.getUsername());
             String token = jwtUtil.generateToken(loginCredentials.getUsername());
 
+            logger.debug("JWT token generated for user {}: {}", loginCredentials.getUsername(), token);
             return ResponseEntity.ok().body(
                     Map.of(
                             "message", "Login successful!",
@@ -45,10 +54,10 @@ public class LoginAuthController {
                     )
             );
         } else {
+            logger.warn("Authentication failed for username: {}", loginCredentials.getUsername());
             return ResponseEntity.status(401).body(
-                    Map.of("message", "Invalid Credentials!!")  // ✅ Fix is here
+                    Map.of("message", "Invalid Credentials!!")
             );
         }
     }
-
 }

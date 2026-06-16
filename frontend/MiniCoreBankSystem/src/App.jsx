@@ -2,13 +2,13 @@ import React, { lazy, Suspense } from 'react';
 import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
 import ProtectedRoute from './Components/ProtectedRoute';
 import './index.css';
+import VideoCallPage from './pages/VideoCallPage';
 
 // Lazy loaded pages
 const LoginPage = lazy(() => import('./pages/LoginPage/LoginPage'));
+
 const SignUp = lazy(() => import('./pages/SignUp/SignUp'));
-const Dashboard = lazy(() => import('./pages/Dashboard/Dashboard'));
-const Accounts = lazy(() => import('./pages/Accounts/Accounts'));
-const Transactions = lazy(() => import('./pages/Transactions/Transactions'));
+const Dashboard = lazy(() => import('./pages/DashboardPage/Dashboard'));
 const Profile = lazy(() => import('./pages/Profile/Profile'));
 const TermsAndConditions = lazy(() => import('./pages/TermsAndConditions/TermsAndConditions'));
 const ChangePassword = lazy(() => import('./pages/ForgetPasswordModule/ChangePassword'));
@@ -17,6 +17,16 @@ const LandingPage = lazy(() => import('./pages/LandingPage/LandingPage'));
 const AdminPage = lazy(() => import('./pages/AdminPage/AdminPage'));
 const ShowUsersData = lazy(()=> import('./pages/ShowUsersData/ShowUsersData'));
 const KYCFormPage = lazy(()=>import('./pages/KYCFormPage/KYCFormPage'));
+const AccountCreationPage = lazy(()=>import('./pages/CreateAccount/AccountCreationPage'));
+const GetAllTransactionsPage = lazy(()=>import('./pages/GetAllTransaction/GetAllTransactionPage'));
+const FetchUsersAmmount = lazy(()=>import('./pages/FetchUsersAmmount/FetchUserAmmount'));
+const GetFDDataById = lazy(()=>import('./pages/GetFDByIdPage/GetFDDetailsById'));
+const SearchFDStatement = lazy(()=>import('./pages/SearchFDStatement/SearchFDStatement'));
+const CreateFDPage = lazy(()=>import('./pages/CreateFDPage/CreateFDPage'));
+const Chatbot = lazy(()=>import("./pages/Chatbot/Chatbot"));
+const AboutUs = lazy(()=>import("./pages/AboutUs/AboutUsPage"));
+const OtpVerifyPage = lazy(()=>import("./pages/OTPModulePage/OTPVerificationPage"));
+const LearnMorePage = lazy(()=>import("./pages/LearnMore/LearnMorePage"));
 const App = () => {
   return (
     <Router>
@@ -24,6 +34,7 @@ const App = () => {
         <Routes>
           {/* Public Routes */}
           <Route path="/" element={<LandingPage />} />
+          <Route path="/video-call/:roomName" element={<VideoCallPage/>} />
           <Route path="/api/login" element={<LoginPage />} />
           <Route path="/api/signup" element={<SignUp />} />
           <Route path="/api/terms" element={<TermsAndConditions />} />
@@ -31,6 +42,11 @@ const App = () => {
           <Route path="/api/changepassword" element={<ChangePassword />} />
           <Route path="/api/ShowUsers" element={<ShowUsersData/>}/>
           <Route path="/api/kycform" element={<KYCFormPage/>}/>
+          <Route path="/api/chatbot" element={<Chatbot/>}/>
+          <Route path="/api/aboutus" element={<AboutUs/>}/>
+          <Route path="/api/otpVerification" element={<OtpVerifyPage/>}/>
+          <Route path="/api/learnMore" element={<LearnMorePage/>}/>
+          
           {/* Protected Routes */}
           <Route
             path="/api/user/dashboard"
@@ -41,7 +57,7 @@ const App = () => {
             }
           />
           <Route
-            path="api/admin/dashboard"
+            path="/api/admin/AdminPage"
             element={
               <ProtectedRoute allowedRoles={['ADMIN']}>
                 <AdminPage />
@@ -49,21 +65,14 @@ const App = () => {
             }
           />
           <Route
-            path="/api/accounts"
-            element={
-              <ProtectedRoute allowedRoles={['USER', 'ADMIN']}>
-                <Accounts />
-              </ProtectedRoute>
-            }
+          path="/api/admin/getUsersFDData"
+          element={
+            <ProtectedRoute allowedRoles={['ADMIN']}>
+              <GetFDDataById/>
+            </ProtectedRoute>
+          }
           />
-          <Route
-            path="/api/transactions"
-            element={
-              <ProtectedRoute allowedRoles={['USER', 'ADMIN']}>
-                <Transactions />
-              </ProtectedRoute>
-            }
-          />
+          
           <Route
             path="/api/profile"
             element={
@@ -71,6 +80,51 @@ const App = () => {
                 <Profile />
               </ProtectedRoute>
             }
+          />
+
+          <Route
+          path="/api/fdstatement"
+          element={
+            <ProtectedRoute allowedRoles={['USER', 'ADMIN']}>
+              <SearchFDStatement/>
+            </ProtectedRoute>
+          }
+          />
+
+          <Route
+          path="/api/createFD"
+          element={
+            <ProtectedRoute allowedRoles={['USER']}>
+              <CreateFDPage/>
+            </ProtectedRoute>
+          }
+          />
+
+          <Route
+          path="/api/users/getAmmount"
+          element={
+            <ProtectedRoute allowedRoles={['USER']}>
+              <FetchUsersAmmount/>
+            </ProtectedRoute>
+          }
+          />
+
+          <Route
+          path="/api/all-transactions"
+          element={
+            <ProtectedRoute allowedRoles={['ADMIN']}>
+              <GetAllTransactionsPage/>
+            </ProtectedRoute>
+          }
+          />
+
+          <Route
+          path="/api/create-account"
+          element={
+            <ProtectedRoute allowedRoles={['ADMIN']}>
+              <AccountCreationPage/>
+            </ProtectedRoute>
+          }
           />
 
           {/* Redirect all unknown paths to login */}

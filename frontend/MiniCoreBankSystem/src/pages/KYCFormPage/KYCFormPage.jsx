@@ -1,362 +1,409 @@
 import React, { useState } from 'react';
-import { FileText, Upload, CheckCircle, Info } from 'lucide-react';
+import axios from 'axios';
+import { useNavigate } from 'react-router-dom';
+import { 
+  FileText, 
+  User, 
+  CreditCard, 
+  Upload, 
+  CheckCircle2, 
+  AlertCircle,
+  Shield,
+  Info,
+  Loader2
+} from 'lucide-react';
 
-// Toast component
-const Toast = ({ message, type, onClose }) => {
-    React.useEffect(() => {
-        const timer = setTimeout(() => {
-            onClose();
-        }, 3000);
-        return () => clearTimeout(timer);
-    }, [onClose]);
+const KYCProcess = () => {
+  const [userId, setUserId] = useState('');
+  const [aadharNumber, setAadharNumber] = useState('');
+  const [panNumber, setPanNumber] = useState('');
+  const [documentFile, setDocumentFile] = useState(null);
+  const [responseMessage, setResponseMessage] = useState('');
+  const [errors, setErrors] = useState({});
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [showInstructions, setShowInstructions] = useState(false);
+  const navigate = useNavigate();
 
-    const bgColor = type === 'success' ? 'bg-green-500' : type === 'error' ? 'bg-red-500' : 'bg-blue-500';
+  // Validation patterns
+  const panRegex = /^[A-Z]{5}[0-9]{4}[A-Z]{1}$/;
+  const aadharRegex = /^\d{4}\s?\d{4}\s?\d{4}$/;
+
+  // Real-time validation
+  const handleAadharChange = (e) => {
+    let value = e.target.value.replace(/[^\d ]/g, '');
+    value = value.replace(/(\d{4})\s?(\d{0,4})\s?(\d{0,4})/, (m, g1, g2, g3) => {
+      let out = g1;
+      if (g2) out += ' ' + g2;
+      if (g3) out += ' ' + g3;
+      return out.trim();
+    });
+    setAadharNumber(value);
+    validateField('aadhar', value);
+  };
+
+  const handlePanChange = (e) => {
+    const value = e.target.value.toUpperCase().replace(/[^A-Z0-9]/g, '');
+    setPanNumber(value);
+    validateField('pan', value);
+  };
+
+  const handleUserIdChange = (e) => {
+    const value = e.target.value;
+    setUserId(value);
+    validateField('userId', value);
+  };
+
+  const handleFileChange = (e) => {
+    const file = e.target.files[0];
+    setDocumentFile(file);
+    validateField('document', file);
+  };
+
+  const validateField = (field, value) => {
+    let error = '';
     
-    return (
-        <div className={`fixed top-4 right-4 ${bgColor} text-white px-6 py-3 rounded-lg shadow-lg z-50 max-w-sm`}>
-            <div className="flex items-center justify-between">
-                <span className="text-sm font-medium">{message}</span>
-                <button onClick={onClose} className="ml-4 text-white hover:text-gray-200">
-                    ×
-                </button>
-            </div>
+    switch(field) {
+      case 'aadhar':
+        if (!value) error = 'Aadhar is required';
+        else if (!aadharRegex.test(value.replace(/\s/g, ''))) 
+          error = 'Aadhar must be 12 digits (e.g., 1234 1234 1234)';
+        break;
+      case 'pan':
+        if (!value) error = 'PAN is required';
+        else if (!panRegex.test(value)) 
+          error = 'PAN must be 5 letters, 4 digits, 1 letter (e.g., ABCDE1234E)';
+        break;
+      case 'userId':
+        if (!value) error = 'User ID is required';
+        else if (!/^\d+$/.test(value)) error = 'User ID must be numeric';
+        break;
+      case 'document':
+        if (!value) error = 'Document is required';
+        else if (value.size > 5 * 1024 * 1024) 
+          error = 'File size exceeds 5MB limit';
+        else if (!['image/png', 'image/jpeg', 'application/pdf'].includes(value.type)) 
+          error = 'Only PNG, JPG, JPEG, PDF files allowed';
+        break;
+    }
+
+    setErrors(prev => ({ ...prev, [field]: error }));
+  };
+
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+    setIsSubmitting(true);
+
+    // Validate all fields
+    validateField('userId', userId);
+    validateField('aadhar', aadharNumber);
+    validateField('pan', panNumber);
+    validateField('document', documentFile);
+
+    // Check if any errors exist
+    if (Object.values(errors).some(error => error)) {
+      setIsSubmitting(false);
+      return;
+    }
+
+    try {
+      const formData = new FormData();
+      formData.append('userId', userId);
+      formData.append('aadharNumber', aadharNumber.replace(/\s/g, ''));
+      formData.append('panNumber', panNumber);
+      formData.append('documentFile', documentFile);
+
+      const response = await axios.post(
+        'http://localhost:8085/api/processKYC',
+        formData,
+        { headers: { 'Content-Type': 'multipart/form-data' } }
+      );
+
+      setResponseMessage(response.data.message || 'KYC submitted successfully!');
+      
+      setTimeout(() => {
+        navigate('/api/ShowUsers');
+      }, 2000);
+    } catch (error) {
+      setResponseMessage(
+        error.response?.data?.message || 
+        'Failed to process KYC. Please try again.'
+      );
+    } finally {
+      setIsSubmitting(false);
+    }
+  };
+
+  return (
+    <div className="min-h-screen bg-gray-50 py-12 px-4 sm:px-6 lg:px-8">
+      <div className="max-w-4xl mx-auto">
+        <div className="text-center mb-10">
+          <div className="mx-auto h-12 w-12 rounded-full bg-blue-100 flex items-center justify-center mb-4">
+            <Shield className="h-6 w-6 text-blue-600" />
+          </div>
+          <h1 className="text-3xl font-bold text-gray-900 mb-2">KYC Verification</h1>
+          <p className="text-lg text-gray-600">Complete your Know Your Customer process</p>
         </div>
-    );
-};
 
-const KYCForm = () => {
-    const [userId, setUserId] = useState('');
-    const [aadharNumber, setAadharNumber] = useState('');
-    const [panNumber, setPanNumber] = useState('');
-    const [documentFile, setDocumentFile] = useState(null);
-    const [isLoading, setIsLoading] = useState(false);
-    const [fileName, setFileName] = useState('');
-    const [showGuide, setShowGuide] = useState(false);
-    const [, setToast] = useState(null);
+        <div className="bg-white shadow rounded-lg overflow-hidden">
+          <div className="p-6 sm:p-10">
+            <div className="grid md:grid-cols-2 gap-10">
+              {/* Form Section */}
+              <div>
+                <form onSubmit={handleSubmit} className="space-y-6">
+                  {/* User ID */}
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-2">
+                      User ID
+                    </label>
+                    <div className="relative">
+                      <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                        <User className="h-5 w-5 text-gray-400" />
+                      </div>
+                      <input
+                        type="text"
+                        placeholder="Enter your user ID"
+                        value={userId}
+                        onChange={handleUserIdChange}
+                        className={`pl-10 w-full px-4 py-3 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 ${
+                          errors.userId ? 'border-red-500 bg-red-50' : 'border-gray-300'
+                        }`}
+                      />
+                    </div>
+                    {errors.userId && (
+                      <p className="mt-1 text-sm text-red-600 flex items-center">
+                        <AlertCircle className="w-4 h-4 mr-1" />
+                        {errors.userId}
+                      </p>
+                    )}
+                  </div>
 
-    // Validation states
-    const [isAadharValid, setIsAadharValid] = useState(true);
-    const [isPanValid, setIsPanValid] = useState(true);
-    const [isUserIdValid, setIsUserIdValid] = useState(true);
+                  {/* Aadhar Number */}
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-2">
+                      Aadhar Number
+                    </label>
+                    <div className="relative">
+                      <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                        <CreditCard className="h-5 w-5 text-gray-400" />
+                      </div>
+                      <input
+                        type="text"
+                        placeholder="1234 1234 1234"
+                        value={aadharNumber}
+                        onChange={handleAadharChange}
+                        maxLength={14}
+                        className={`pl-10 w-full px-4 py-3 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 ${
+                          errors.aadhar ? 'border-red-500 bg-red-50' : 'border-gray-300'
+                        }`}
+                      />
+                    </div>
+                    {errors.aadhar && (
+                      <p className="mt-1 text-sm text-red-600 flex items-center">
+                        <AlertCircle className="w-4 h-4 mr-1" />
+                        {errors.aadhar}
+                      </p>
+                    )}
+                  </div>
 
-    const showToast = (message, type) => {
-        setToast({ message, type });
-    };
+                  {/* PAN Number */}
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-2">
+                      PAN Number
+                    </label>
+                    <div className="relative">
+                      <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                        <FileText className="h-5 w-5 text-gray-400" />
+                      </div>
+                      <input
+                        type="text"
+                        placeholder="ABCDE1234E"
+                        value={panNumber}
+                        onChange={handlePanChange}
+                        maxLength={10}
+                        className={`pl-10 w-full px-4 py-3 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 ${
+                          errors.pan ? 'border-red-500 bg-red-50' : 'border-gray-300'
+                        }`}
+                      />
+                    </div>
+                    {errors.pan && (
+                      <p className="mt-1 text-sm text-red-600 flex items-center">
+                        <AlertCircle className="w-4 h-4 mr-1" />
+                        {errors.pan}
+                      </p>
+                    )}
+                  </div>
 
-    // Regex patterns
-    const aadharRegex = /^\d{4}\s\d{4}\s\d{4}$/; // XXXX XXXX XXXX format
-
-    const panRegex = /^[A-Z]{5}[0-9]{4}[A-Z]{1}$/; // ABCDE1234F format
-
-    const handleUserIdChange = (e) => {
-        const value = e.target.value;
-        setUserId(value);
-        setIsUserIdValid(value.trim() !== '' && !isNaN(Number(value)));
-    };
-
-    const handleAadharChange = (e) => {
-        const value = e.target.value;
-        const formattedValue = value.replace(/\s/g, '').replace(/(\d{4})(?=\d)/g, '$1 ').trim();
-        setAadharNumber(formattedValue);
-        setIsAadharValid(aadharRegex.test(formattedValue));
-    };
-
-    const handlePanChange = (e) => {
-        const value = e.target.value.toUpperCase();
-        setPanNumber(value);
-        setIsPanValid(panRegex.test(value));
-    };
-
-    const handleFileChange = (e) => {
-        const file = e.target.files[0];
-        if (file) {
-            if (file.size > 5 * 1024 * 1024) {
-                showToast("File size exceeds 5MB limit.", "error");
-                setDocumentFile(null);
-                setFileName('');
-                return;
-            }
-            const acceptedTypes = ['image/png', 'image/jpeg', 'application/pdf'];
-            if (!acceptedTypes.includes(file.type)) {
-                showToast("Only PNG, JPG, JPEG, PDF files are allowed.", "error");
-                setDocumentFile(null);
-                setFileName('');
-                return;
-            }
-
-            setDocumentFile(file);
-            setFileName(file.name);
-            showToast(`File selected: ${file.name}`, "success");
-        } else {
-            setDocumentFile(null);
-            setFileName('');
-        }
-    };
-
-    const handleSubmit = async (e) => {
-        e.preventDefault();
-        setIsLoading(true);
-
-        const isFormValid =
-            isUserIdValid &&
-            isAadharValid &&
-            isPanValid &&
-            userId.trim() !== '' &&
-            documentFile !== null;
-
-        if (!isFormValid) {
-            showToast("Please correct the errors in the form and upload a document.", "error");
-            setIsLoading(false);
-            return;
-        }
-
-        // Create a FormData object
-        const formData = new FormData();
-        formData.append('userId', userId);
-        formData.append('aadharNumber', aadharNumber.replace(/\s/g, '')); // Remove spaces for backend
-        formData.append('panNumber', panNumber);
-        formData.append('documentFile', documentFile); // Append the actual file object
-
-        try {
-            showToast('Processing KYC...', 'info');
-            
-            // Simulate API call - replace with actual API call
-            await new Promise(resolve => setTimeout(resolve, 2000));
-            
-            // Clear form fields on successful submission
-            setUserId('');
-            setAadharNumber('');
-            setPanNumber('');
-            setDocumentFile(null);
-            setFileName('');
-            setIsAadharValid(true);
-            setIsPanValid(true);
-            setIsUserIdValid(true);
-            
-            showToast('KYC successfully completed!', 'success');
-        } catch (err) {
-            showToast(`Failed to process KYC. Please try again:  ${err}`);
-        } finally {
-            setIsLoading(false);
-        }
-    };
-
-    const inputClass = (isValid) =>
-        `w-full px-4 py-3 border rounded-lg focus:ring-2 transition duration-200 ${
-            isValid
-                ? 'border-gray-300 focus:ring-indigo-500 focus:border-indigo-500'
-                : 'border-red-500 focus:ring-red-500 focus:border-red-500'
-        }`;
-
-    return (
-        <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100 flex items-center justify-center py-12 px-4 sm:px-6 lg:px-8">
-            <div className="max-w-2xl w-full space-y-8">
-                {/* Main Form */}
-                <div className="bg-white rounded-2xl shadow-xl overflow-hidden transform transition-all duration-300 hover:scale-[1.01]">
-                    <div className="bg-gradient-to-r from-indigo-600 to-purple-700 p-8 text-center">
-                        <h1 className="text-3xl font-extrabold text-white mb-2 tracking-wide">
-                            KYC Verification
-                        </h1>
-                        <p className="text-indigo-100 text-opacity-90 text-lg">
-                            Securely complete your identity verification process
+                  {/* Document Upload */}
+                  <div>
+                    <div className="flex items-center justify-between mb-2">
+                      <label className="block text-sm font-medium text-gray-700">
+                        Identity Document
+                      </label>
+                      <button 
+                        type="button" 
+                        onClick={() => setShowInstructions(!showInstructions)}
+                        className="text-sm text-blue-600 hover:text-blue-800"
+                      >
+                        {showInstructions ? 'Hide instructions' : 'View instructions'}
+                      </button>
+                    </div>
+                    
+                    {showInstructions && (
+                      <div className="mb-4 p-4 bg-blue-50 rounded-lg border border-blue-200">
+                        <h4 className="font-medium text-blue-800 mb-2 flex items-center">
+                          <Info className="w-5 h-5 mr-2" />
+                          Document Requirements:
+                        </h4>
+                        <ol className="list-decimal list-inside text-sm text-blue-700 space-y-1">
+                          <li>Page 1: Clear copy of your Aadhar card (front)</li>
+                          <li>Page 2: Clear copy of your Aadhar card (back)</li>
+                          <li>Page 3: Clear copy of your PAN card</li>
+                          <li>Page 4: Self-attested declaration (if required)</li>
+                        </ol>
+                        <p className="text-xs text-blue-600 mt-2">
+                          Max file size: 5MB | Format: PDF
                         </p>
+                      </div>
+                    )}
+
+                    <label className="flex flex-col items-center justify-center w-full h-40 border-2 border-dashed rounded-lg cursor-pointer hover:border-blue-400 bg-gray-50 hover:bg-gray-100 transition-colors">
+                      <div className="flex flex-col items-center justify-center pt-5 pb-6">
+                        <Upload className="w-10 h-10 mb-3 text-gray-400" />
+                        <p className="mb-2 text-sm text-gray-500">
+                          <span className="font-semibold">Click to upload</span> or drag and drop
+                        </p>
+                        <p className="text-xs text-gray-500">
+                          PDF (MAX. 5MB)
+                        </p>
+                      </div>
+                      <input 
+                        type="file" 
+                        className="hidden" 
+                        onChange={handleFileChange}
+                        accept=".pdf"
+                      />
+                    </label>
+                    {errors.document && (
+                      <p className="mt-1 text-sm text-red-600 flex items-center">
+                        <AlertCircle className="w-4 h-4 mr-1" />
+                        {errors.document}
+                      </p>
+                    )}
+                    {documentFile && (
+                      <div className="mt-2 text-sm text-green-600 flex items-center">
+                        <CheckCircle2 className="w-4 h-4 mr-1" />
+                        {documentFile.name} ({(documentFile.size / 1024 / 1024).toFixed(2)}MB)
+                      </div>
+                    )}
+                  </div>
+
+                  <button
+                    type="submit"
+                    disabled={isSubmitting}
+                    className={`w-full py-3 px-4 rounded-lg font-medium text-white ${
+                      isSubmitting 
+                        ? 'bg-blue-400 cursor-not-allowed' 
+                        : 'bg-blue-600 hover:bg-blue-700'
+                    } transition-colors`}
+                  >
+                    {isSubmitting ? (
+                      <span className="flex items-center justify-center">
+                        <Loader2 className="w-5 h-5 mr-2 animate-spin" />
+                        Processing...
+                      </span>
+                    ) : (
+                      'Submit KYC Verification'
+                    )}
+                  </button>
+                </form>
+
+                {responseMessage && (
+                  <div className={`mt-6 p-4 rounded-lg border ${
+                    responseMessage.includes('success') 
+                      ? 'bg-green-50 border-green-200 text-green-700' 
+                      : 'bg-red-50 border-red-200 text-red-700'
+                  }`}
+                  >
+                    <div className="flex items-center">
+                      {responseMessage.includes('success') ? (
+                        <CheckCircle2 className="w-5 h-5 mr-2" />
+                      ) : (
+                        <AlertCircle className="w-5 h-5 mr-2" />
+                      )}
+                      <span>{responseMessage}</span>
                     </div>
+                  </div>
+                )}
+              </div>
 
-                    <div className="p-8 sm:p-10">
-                        <form onSubmit={handleSubmit} className="space-y-6">
-                            <div>
-                                <label htmlFor="userId" className="block text-sm font-semibold text-gray-800 mb-2">
-                                    User ID
-                                </label>
-                                <input
-                                    type="text"
-                                    id="userId"
-                                    className={inputClass(isUserIdValid)}
-                                    value={userId}
-                                    onChange={handleUserIdChange}
-                                    required
-                                    placeholder="e.g., 12345"
-                                    disabled={isLoading}
-                                />
-                                {!isUserIdValid && userId.trim() !== '' && (
-                                    <p className="mt-1 text-sm text-red-600">Please enter a valid numeric User ID.</p>
-                                )}
-                            </div>
+              {/* Instructions Section */}
+              <div className="bg-gray-50 p-6 rounded-lg">
+                <h3 className="text-lg font-semibold text-gray-800 mb-4 flex items-center">
+                  <Info className="w-5 h-5 mr-2 text-blue-600" />
+                  KYC Document Guide
+                </h3>
+                
+                <div className="space-y-6">
+                  <div>
+                    <h4 className="font-medium text-gray-800 mb-2">Required Documents</h4>
+                    <ul className="text-sm text-gray-600 space-y-2">
+                      <li className="flex items-start">
+                        <span className="bg-blue-100 text-blue-800 rounded-full w-5 h-5 flex items-center justify-center mr-2 mt-0.5">1</span>
+                        Aadhar Card (Front & Back)
+                      </li>
+                      <li className="flex items-start">
+                        <span className="bg-blue-100 text-blue-800 rounded-full w-5 h-5 flex items-center justify-center mr-2 mt-0.5">2</span>
+                        PAN Card
+                      </li>
+                      <li className="flex items-start">
+                        <span className="bg-blue-100 text-blue-800 rounded-full w-5 h-5 flex items-center justify-center mr-2 mt-0.5">3</span>
+                        Self-attested declaration
+                      </li>
+                    </ul>
+                  </div>
 
-                            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                                <div>
-                                    <label htmlFor="aadharNumber" className="block text-sm font-semibold text-gray-800 mb-2">
-                                        Aadhar Number
-                                    </label>
-                                    <input
-                                        type="text"
-                                        id="aadharNumber"
-                                        className={inputClass(isAadharValid)}
-                                        value={aadharNumber}
-                                        onChange={handleAadharChange}
-                                        required
-                                        placeholder="XXXX XXXX XXXX"
-                                        maxLength="14"
-                                        disabled={isLoading}
-                                    />
-                                    {!isAadharValid && aadharNumber.trim() !== '' && (
-                                        <p className="mt-1 text-sm text-red-600">Invalid Aadhar Number format.</p>
-                                    )}
-                                </div>
+                  <div>
+                    <h4 className="font-medium text-gray-800 mb-2">How to Prepare PDF</h4>
+                    <ol className="text-sm text-gray-600 space-y-2">
+                      <li className="flex items-start">
+                        <span className="bg-blue-100 text-blue-800 rounded-full w-5 h-5 flex items-center justify-center mr-2 mt-0.5">1</span>
+                        Scan all documents clearly
+                      </li>
+                      <li className="flex items-start">
+                        <span className="bg-blue-100 text-blue-800 rounded-full w-5 h-5 flex items-center justify-center mr-2 mt-0.5">2</span>
+                        Arrange in order: Aadhar front, Aadhar back, PAN card
+                      </li>
+                      <li className="flex items-start">
+                        <span className="bg-blue-100 text-blue-800 rounded-full w-5 h-5 flex items-center justify-center mr-2 mt-0.5">3</span>
+                        Combine into single PDF file
+                      </li>
+                      <li className="flex items-start">
+                        <span className="bg-blue-100 text-blue-800 rounded-full w-5 h-5 flex items-center justify-center mr-2 mt-0.5">4</span>
+                        Ensure all text is readable
+                      </li>
+                    </ol>
+                  </div>
 
-                                <div>
-                                    <label htmlFor="panNumber" className="block text-sm font-semibold text-gray-800 mb-2">
-                                        PAN Number
-                                    </label>
-                                    <input
-                                        type="text"
-                                        id="panNumber"
-                                        className={inputClass(isPanValid)}
-                                        value={panNumber}
-                                        onChange={handlePanChange}
-                                        required
-                                        placeholder="ABCDE1234F"
-                                        maxLength="10"
-                                        disabled={isLoading}
-                                    />
-                                    {!isPanValid && panNumber.trim() !== '' && (
-                                        <p className="mt-1 text-sm text-red-600">Invalid PAN Number format.</p>
-                                    )}
-                                </div>
-                            </div>
-
-                            <div>
-                                <div className="flex items-center justify-between mb-3">
-                                    <label className="block text-sm font-semibold text-gray-800">
-                                        Upload Document
-                                    </label>
-                                    <button
-                                        type="button"
-                                        onClick={() => setShowGuide(!showGuide)}
-                                        className="flex items-center text-sm text-indigo-600 hover:text-indigo-800 font-medium"
-                                    >
-                                        <Info size={16} className="mr-1" />
-                                        Document Guide
-                                    </button>
-                                </div>
-
-                                {/* Collapsible Guide */}
-                                {showGuide && (
-                                    <div className="mb-4 bg-gradient-to-r from-blue-50 to-indigo-50 rounded-xl p-4 border border-blue-200">
-                                        <h3 className="text-sm font-semibold text-gray-800 mb-3 flex items-center">
-                                            <FileText size={18} className="mr-2 text-indigo-600" />
-                                            PDF Document Structure
-                                        </h3>
-                                        <div className="space-y-2 text-sm text-gray-700">
-                                            <div className="flex items-start">
-                                                <div className="w-6 h-6 bg-blue-500 text-white rounded-full flex items-center justify-center text-xs font-bold mr-3 mt-0.5">1</div>
-                                                <div>
-                                                    <span className="font-medium">First Page:</span> Clear image of your Aadhar Card
-                                                </div>
-                                            </div>
-                                            <div className="flex items-start">
-                                                <div className="w-6 h-6 bg-purple-500 text-white rounded-full flex items-center justify-center text-xs font-bold mr-3 mt-0.5">2</div>
-                                                <div>
-                                                    <span className="font-medium">Second Page:</span> Clear image of your PAN Card
-                                                </div>
-                                            </div>
-                                        </div>
-                                    </div>
-                                )}
-
-                                <div className="mt-1 flex justify-center px-6 pt-5 pb-6 border-2 border-dashed rounded-lg border-gray-300 hover:border-indigo-400 transition duration-200 ease-in-out cursor-pointer group">
-                                    <div className="space-y-1 text-center">
-                                        <Upload className="mx-auto h-12 w-12 text-gray-400 group-hover:text-indigo-600 transition-colors duration-200" />
-                                        <div className="flex text-sm text-gray-600">
-                                            <label
-                                                htmlFor="file-upload"
-                                                className="relative cursor-pointer bg-white rounded-md font-medium text-indigo-600 hover:text-indigo-500 focus-within:outline-none focus-within:ring-2 focus-within:ring-offset-2 focus-within:ring-indigo-500"
-                                            >
-                                                <span>Upload a file</span>
-                                                <input
-                                                    id="file-upload"
-                                                    name="file-upload"
-                                                    type="file"
-                                                    className="sr-only"
-                                                    onChange={handleFileChange}
-                                                    accept=".png,.jpg,.jpeg,.pdf"
-                                                    disabled={isLoading}
-                                                />
-                                            </label>
-                                            <p className="pl-1">or drag and drop</p>
-                                        </div>
-                                        <p className="text-xs text-gray-500">PNG, JPG, JPEG, PDF up to 5MB</p>
-                                        
-                                        {fileName && (
-                                            <div className="mt-3 flex items-center justify-center bg-green-50 rounded-lg p-3">
-                                                <CheckCircle className="h-5 w-5 text-green-600 mr-2" />
-                                                <span className="text-sm text-green-800 font-medium">{fileName}</span>
-                                            </div>
-                                        )}
-                                    </div>
-                                </div>
-                                
-                                {!documentFile && (
-                                    <p className="mt-2 text-sm text-red-600">Please upload a document to proceed.</p>
-                                )}
-                            </div>
-
-                            <div className="pt-4">
-                                <button
-                                    type="submit"
-                                    disabled={isLoading || !isAadharValid || !isPanValid || !isUserIdValid || !documentFile}
-                                    className={`w-full flex justify-center items-center py-3 px-4 border border-transparent rounded-lg shadow-sm text-lg font-bold text-white bg-gradient-to-r from-indigo-600 to-purple-700 hover:from-indigo-700 hover:to-purple-800 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 transition duration-300 ease-in-out transform hover:-translate-y-0.5 ${
-                                        (isLoading || !isAadharValid || !isPanValid || !isUserIdValid || !documentFile) 
-                                            ? 'opacity-60 cursor-not-allowed' : ''
-                                    }`}
-                                >
-                                    {isLoading ? (
-                                        <>
-                                            <svg className="animate-spin -ml-1 mr-3 h-5 w-5 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
-                                                <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
-                                                <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
-                                            </svg>
-                                            Submitting...
-                                        </>
-                                    ) : 'Submit KYC'}
-                                </button>
-                            </div>
-                        </form>
+                  <div className="p-4 bg-white rounded-lg border border-gray-200">
+                    <h4 className="font-medium text-gray-700 mb-3">Example PDF Structure</h4>
+                    <div className="flex space-x-3 overflow-x-auto pb-2">
+                      {['Aadhar Front', 'Aadhar Back', 'PAN Card', 'Declaration'].map((page, index) => (
+                        <div key={index} className="flex-shrink-0 w-24 h-32 bg-white border border-gray-200 rounded flex flex-col items-center justify-center p-2">
+                          <div className="text-xs font-medium text-gray-500 text-center">{page}</div>
+                          <div className="text-2xl text-gray-300 mt-2">Page {index+1}</div>
+                        </div>
+                      ))}
                     </div>
+                    <p className="text-xs text-gray-500 mt-2">Your PDF should have minimum 3 pages</p>
+                  </div>
                 </div>
-
-                {/* Quick Tips */}
-                <div className="bg-white rounded-xl shadow-lg p-6">
-                    <h3 className="text-lg font-semibold text-gray-800 mb-4 text-center">
-                        Steps to upload pdf file
-                    </h3>
-                    <div className="grid grid-cols-1 md:grid-cols-3 gap-4 text-sm">
-                        <div className="text-center">
-                            <div className="w-12 h-12 bg-blue-100 rounded-full flex items-center justify-center mx-auto mb-2">
-                                <FileText className="h-6 w-6 text-blue-600" />
-                            </div>
-                            <h4 className="font-medium text-gray-800 mb-1">Clear Images</h4>
-                            <p className="text-gray-600">Ensure documents are clearly visible and legible</p>
-                        </div>
-                        <div className="text-center">
-                            <div className="w-12 h-12 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-2">
-                                <CheckCircle className="h-6 w-6 text-green-600" />
-                            </div>
-                            <h4 className="font-medium text-gray-800 mb-1">Correct Format</h4>
-                            <p className="text-gray-600">Follow the PDF structure: Aadhar first, PAN second</p>
-                        </div>
-                        <div className="text-center">
-                            <div className="w-12 h-12 bg-purple-100 rounded-full flex items-center justify-center mx-auto mb-2">
-                                <Upload className="h-6 w-6 text-purple-600" />
-                            </div>
-                            <h4 className="font-medium text-gray-800 mb-1">Size Limit</h4>
-                            <p className="text-gray-600">Keep your document under 5MB for faster processing</p>
-                        </div>
-                    </div>
-                </div>
+              </div>
             </div>
+          </div>
         </div>
-    );
+      </div>
+    </div>
+  );
 };
 
-export default KYCForm;
+export default KYCProcess;

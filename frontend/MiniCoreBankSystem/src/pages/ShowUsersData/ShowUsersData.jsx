@@ -1,14 +1,17 @@
 import React, { useEffect, useState } from 'react';
 import axios from 'axios';
-import { useNavigate } from 'react-router-dom'; // ✅ Add navigation
+import { useNavigate } from 'react-router-dom';
+
+const USERS_PER_PAGE = 8;
 
 const ShowUsers = () => {
   const [users, setUsers] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const [refreshCount, setRefreshCount] = useState(0);
+  const [currentPage, setCurrentPage] = useState(1);
 
-  const navigate = useNavigate(); // ✅ useNavigate for redirection
+  const navigate = useNavigate();
 
   const fetchUsers = () => {
     setLoading(true);
@@ -38,6 +41,17 @@ const ShowUsers = () => {
     navigate(`/api/kycform`); 
   };
 
+  const handleBack = () => {
+    navigate(-1);
+  };
+
+  // Pagination logic
+  const totalPages = Math.ceil(users.length / USERS_PER_PAGE);
+  const paginatedUsers = users.slice(
+    (currentPage - 1) * USERS_PER_PAGE,
+    currentPage * USERS_PER_PAGE
+  );
+
   return (
     <div className="min-h-screen bg-gray-50 p-6">
       <div className="max-w-7xl mx-auto">
@@ -55,15 +69,26 @@ const ShowUsers = () => {
                   <p className="text-blue-100">Manage all non-admin users in the system</p>
                 </div>
               </div>
-              <button 
-                onClick={handleRefresh}
-                className="bg-white/10 hover:bg-white/20 transition duration-200 rounded-lg px-4 py-2 flex items-center space-x-2"
-              >
-                <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
-                </svg>
-                <span className="text-white font-medium">Refresh</span>
-              </button>
+              <div className="flex space-x-2">
+                <button
+                  onClick={handleBack}
+                  className="bg-white/10 hover:bg-white/20 transition duration-200 rounded-lg px-4 py-2 flex items-center space-x-2"
+                >
+                  <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
+                  </svg>
+                  <span className="text-white font-medium">Back</span>
+                </button>
+                <button
+                  onClick={handleRefresh}
+                  className="bg-white/10 hover:bg-white/20 transition duration-200 rounded-lg px-4 py-2 flex items-center space-x-2"
+                >
+                  <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
+                  </svg>
+                  <span className="text-white font-medium">Refresh</span>
+                </button>
+              </div>
             </div>
           </div>
 
@@ -98,7 +123,7 @@ const ShowUsers = () => {
                   </tr>
                 </thead>
                 <tbody className="bg-white divide-y divide-gray-200">
-                  {users.map((user) => (
+                  {paginatedUsers.map((user) => (
                     <tr key={user.userId} className="hover:bg-gray-50 transition duration-150">
                       <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">{user.userId}</td>
                       <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{user.fullName}</td>
@@ -135,13 +160,21 @@ const ShowUsers = () => {
           {users.length > 0 && (
             <div className="bg-gray-50 px-6 py-4 flex items-center justify-between border-t border-gray-200">
               <div className="text-sm text-gray-500">
-                Showing <span className="font-medium">1</span> to <span className="font-medium">{users.length}</span> of <span className="font-medium">{users.length}</span> results
+                Showing <span className="font-medium">{(currentPage - 1) * USERS_PER_PAGE + 1}</span> to <span className="font-medium">{Math.min(currentPage * USERS_PER_PAGE, users.length)}</span> of <span className="font-medium">{users.length}</span> results
               </div>
               <div className="flex space-x-2">
-                <button className="px-3 py-1 border border-gray-300 rounded-md text-sm font-medium text-gray-700 bg-white hover:bg-gray-50">
+                <button
+                  className="px-3 py-1 border border-gray-300 rounded-md text-sm font-medium text-gray-700 bg-white hover:bg-gray-50"
+                  onClick={() => setCurrentPage((prev) => Math.max(prev - 1, 1))}
+                  disabled={currentPage === 1}
+                >
                   Previous
                 </button>
-                <button className="px-3 py-1 border border-gray-300 rounded-md text-sm font-medium text-gray-700 bg-white hover:bg-gray-50">
+                <button
+                  className="px-3 py-1 border border-gray-300 rounded-md text-sm font-medium text-gray-700 bg-white hover:bg-gray-50"
+                  onClick={() => setCurrentPage((prev) => Math.min(prev + 1, totalPages))}
+                  disabled={currentPage === totalPages}
+                >
                   Next
                 </button>
               </div>

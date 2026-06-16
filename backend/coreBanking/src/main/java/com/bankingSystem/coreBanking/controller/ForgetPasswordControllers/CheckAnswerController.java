@@ -25,14 +25,17 @@ public class CheckAnswerController {
 
     @PostMapping("/verify-answer")
     public ResponseEntity<String> verifyAnswer(@RequestBody SecurityAnswerDTO securityAnswer) {
-        logger.info("Verifying answer for username: {}", securityAnswer.getUsername());
+        logger.info("Received security answer verification request for username: {}", securityAnswer.getUsername());
+        logger.debug("SecurityAnswerDTO received: {}", securityAnswer); // Ensure no sensitive info exposed
 
         SignUpUserEntity usersData = userSignUpRepo.findByUsername(securityAnswer.getUsername());
 
         if (usersData == null) {
-            logger.warn("User with username '{}' not found.", securityAnswer.getUsername());
+            logger.warn("User with username '{}' not found in database.", securityAnswer.getUsername());
             return ResponseEntity.status(HttpStatus.NOT_FOUND).body("User with username not found");
         }
+
+        logger.debug("Stored answer for user '{}': {}", securityAnswer.getUsername(), usersData.getUserAnswer());
 
         boolean isMatch = usersData.getUserAnswer().trim().equalsIgnoreCase(securityAnswer.getSecurityAnswer().trim());
 
